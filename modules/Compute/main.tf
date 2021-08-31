@@ -16,8 +16,8 @@ resource "aws_instance" "nodejs" {
     subnet_id = var.public_subnets
     availability_zone = "us-east-1a"
     tags = {
-        Name = "nodejs"
-        Project = "tera-kube-ans"
+        Name = "ansible_nodejs"
+        environment = "development"
         
     }
 }
@@ -31,8 +31,8 @@ resource "aws_instance" "react" {
     subnet_id = var.public_subnets
     availability_zone = "us-east-1a"
     tags = {
-        Name = "react"
-        Project = "tera-kube-ans"
+        Name = "ansible_react"
+        environment = "development"
     }
 }
 
@@ -45,8 +45,8 @@ resource "aws_instance" "postgress" {
     subnet_id = var.public_subnets
     availability_zone = "us-east-1a"
     tags = {
-        Name = "postgress"
-        Project = "tera-kube-ans"
+        Name = "ansible_postgresql"
+        environment = "development"
     }
 }
 

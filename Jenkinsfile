@@ -1,20 +1,13 @@
 pipeline{
     agent any
     environment{
-        MYSQL_DATABASE_PASSWORD = "Clarusway"
-        MYSQL_DATABASE_USER = "admin"
-        MYSQL_DATABASE_DB = "phonebook"
-        MYSQL_DATABASE_PORT = 3306
         PATH="/usr/local/bin/:${env.PATH}"
-        ECR_REGISTRY = "646075469151.dkr.ecr.us-east-1.amazonaws.com"
-        APP_REPO_NAME= "phonebook/app"
         CFN_KEYPAIR="the-doctor"
         AWS_REGION = "us-east-1"
-        CLUSTER_NAME = "mehmet-cluster"
-        FQDN = "clarusshop.mehmetafsar.com"
+        FQDN = "nodejs.mehmetafsar.com"
         DOMAIN_NAME = "mehmetafsar.com"
-        NM_SP = "clarus"
-        SEC_NAME = "clarus-cert"
+        VAULT_CREDS=  credentials("${VAULT_ID}")
+        FILE = 'secret.txt'
         GIT_FOLDER = sh(script:'echo ${GIT_URL} | sed "s/.*\\///;s/.git$//"', returnStdout:true).trim()
     }
     stages{
@@ -71,21 +64,43 @@ pipeline{
             }
         }
 
-        stage('Control the react nodejs postgress instance') {
+        stage('Control the react nodejs postgresql instance') {
             steps {
-                echo 'Control the react nodejs postgress instance'
+                echo 'Control the react nodejs postgresql instance'
             script {
                 while(true) {
                         
                         echo "NOdejs is not UP and running yet. Will try to reach again after 10 seconds..."
                         sleep(10)
 
-                        ip = sh(script:'aws ec2 describe-instances --region ${AWS_REGION} --filters Name=tag-value,Values=nodejs  --query Reservations[*].Instances[*].[PublicIpAddress] --output text | sed "s/\\s*None\\s*//g"', returnStdout:true).trim()
+                        ip = sh(script:'aws ec2 describe-instances --region ${AWS_REGION} --filters Name=tag-value,Values=ansible_nodejs  --query Reservations[*].Instances[*].[PublicDnsName] --output text | sed "s/\\s*None\\s*//g"', returnStdout:true).trim()
 
                         if (ip.length() >= 7) {
                             echo "Nodejs Public Ip Address Found: $ip"
-                            env.MASTER_INSTANCE_PUBLIC_IP = "$ip"
-                            sleep(30)
+                            env.NODEJS_INSTANCE_PUBLIC_DNS = "$ip"
+                            sleep(10)
+                            break
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Control the react nodejs postgresql instance') {
+            steps {
+                echo 'Control the react nodejs postgresql instance'
+            script {
+                while(true) {
+                        
+                        echo "Postgresql is not UP and running yet. Will try to reach again after 10 seconds..."
+                        sleep(10)
+
+                        ip = sh(script:'aws ec2 describe-instances --region ${AWS_REGION} --filters Name=tag-value,Values=ansible_postgresql  --query Reservations[*].Instances[*].[PrivateDnsName] --output text | sed "s/\\s*None\\s*//g"', returnStdout:true).trim()
+
+                        if (ip.length() >= 7) {
+                            echo "Postgresql Private Ip Address Found: $ip"
+                            env.POSTGRESQL_INSTANCE_PRİVATE_DNS = "$ip"
+                            sleep(10)
                             break
                         }
                     }
@@ -96,148 +111,15 @@ pipeline{
         stage('Setting up  configuration with ansible') {
             steps {
                 echo "Setting up  configuration with ansible"
+    
                 sh "sed -i 's|{{key_pair}}|${CFN_KEYPAIR}.pem|g' ansible.cfg"
-                script {
-                    sshagent(credentials : ['my-ssh-key']) {
-                    sh '''
-                        Ansible=$(ssh -t -t ubuntu@\"${MASTER_INSTANCE_PUBLIC_IP}" -o StrictHostKeyChecking=no ls /home/ubuntu/.kube | grep -i config )  || true
-                        if [ "$Ansible" == '' ]
-                        then
-                            ansible-playbook playbook.yml
-
-                        fi
-                    '''
+                sh "sed -i 's|{{nodejs_dns_name}}|$NODEJS_INSTANCE_PUBLIC_DNS|g' todo-app-pern/client/.env"
+                sh "sed -i 's|{{postgresql_internal_private_dns}}|$POSTGRESQL_INSTANCE_PRİVATE_DNS|g' todo-app-pern/server/.env"
+                sh "echo '${VAULT_CREDS_PSW}' > secret.txt"
+                sh "ansible-playbook docker_project.yml  --vault-password-file secret.txt -e '@configs/secret.yml'"
                     }
                 }
-            }
-        }
 
-       stage('Test the infrastructure') {
-            steps {
-                echo "Testing if the K8s cluster is ready or not Master Public Ip Address: ${MASTER_INSTANCE_PUBLIC_IP}"
-                script {
-                    sshagent(credentials : ['my-ssh-key']) {
-                        while(true) {
-                            try {
-                              sh 'ssh -t -t ubuntu@\"${MASTER_INSTANCE_PUBLIC_IP}" -o StrictHostKeyChecking=no kubectl get nodes | grep -i master'
-                              echo "Successfully created K8s cluster."
-                              sleep(60)
-                              break
-                            }
-                            catch(Exception) {
-                              echo 'Could not create K8s cluster please wait'
-                              sleep(5)   
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        stage('Test the k8s svc') {
-            steps {
-                echo "Testing if the K8s cluster is ready or not Master Public Ip Address: ${MASTER_INSTANCE_PUBLIC_IP}"
-                script {
-                    sshagent(credentials : ['my-ssh-key']) {
-                        while(true) {
-                            try {
-                              sh 'ssh -t -t ubuntu@\"${MASTER_INSTANCE_PUBLIC_IP}" -o StrictHostKeyChecking=no kubectl get svc -A'
-                              echo "Successfully K8s loadbalancer service."
-                              sleep(120)
-                              break
-                            }
-                            catch(Exception) {
-                              echo 'Could not create K8s cluster please wait'
-                              sleep(5)   
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        stage('Copy the config file') {
-            steps { 
-                echo "Copy the config file"
-                script {
-                    sshagent(credentials : ['my-ssh-key']) {
-                        sh '''scp -o StrictHostKeyChecking=no \
-                                -o UserKnownHostsFile=/dev/null \
-                                -q ubuntu@\"${MASTER_INSTANCE_PUBLIC_IP}":/home/ubuntu/.kube/config /var/lib/jenkins/.kube/
-                            ''' 
-                    }
-                }
-            }
-        }
-
-        stage('check-cluster'){
-            agent any
-            steps{
-                sh '''
-                    #!/bin/sh
-                    running=$(sudo lsof -nP -iTCP:80 -sTCP:LISTEN) || true
-                    
-                    if [ "$running" != '' ]
-                    then
-                        docker-compose down
-                        exist="$(kubectl get nodes | grep -i master)" || true
-                        if [ "$exist" == '' ]
-                        then
-                            
-                            echo "we have already created this cluster...."
-                        else
-                            echo 'no need to create cluster...'
-                        fi
-                    else
-                        echo 'app is not running with docker-compose up -d'
-                    fi
-                '''
-            }
-        }
-
-
-        stage('apply-k8s'){
-            agent any
-            steps{
-                withAWS(credentials: 'mycredentials', region: 'us-east-1') {
-                    sh "sed -i 's|{{ECR_REGISTRY}}|$ECR_REGISTRY/$APP_REPO_NAME:latest|g' k8s/deployment-app.yaml"
-                    sh '''
-                        NameSpaces=$(kubectl get namespaces | grep -i $NM_SP) || true
-                        if [ "$NameSpaces" == '' ]
-                        then
-                            kubectl create namespace $NM_SP
-                        else
-                            kubectl delete namespace $NM_SP
-                            kubectl create namespace $NM_SP
-                        fi
-                    '''
-                    sh "sed -i 's|{{ns}}|$NM_SP|g' k8s/configmap-app.yaml"
-                    sh "sed -i 's|{{ns}}|$NM_SP|g' storage-ns.yml"
-                    sh "kubectl apply -f  storage-class.yaml"
-                    sh "kubectl apply -f  storage-ns.yml"
-                    sh "kubectl apply --namespace $NM_SP -f  k8s" 
-                    sleep(5)
-                }                  
-            }
-        }
-
-        stage('apply-ingress') {
-            steps {
-                script {
-                        while(true) {
-                            try {
-                              sh "sed -i 's|{{FQDN}}|$FQDN|g' ingress-service.yaml"
-                              sh "kubectl apply --validate=false --namespace $NM_SP -f ingress-service.yaml"
-                              echo "Successfully created ingress."
-                              break
-                            }
-                            catch(Exception) {
-                              echo 'Could not create ingress please wait'
-                              sleep(5)   
-                            }
-                        }
-                    }
-                }
-            }
 
         stage('dns-record-control'){
             agent any
@@ -268,7 +150,7 @@ pipeline{
             steps{
                 withAWS(credentials: 'mycredentials', region: 'us-east-1') {
                     script {
-                        env.ELB_DNS = sh(script:'aws elbv2 describe-load-balancers --query LoadBalancers[].DNSName --output text | sed "s/\\s*None\\s*//g"', returnStdout:true).trim()
+                        env.ELB_DNS = sh(script:'aws ec2 describe-instances --region ${AWS_REGION} --filters Name=tag-value,Values=ansible_nodejs  --query Reservations[*].Instances[*].[PublicIpAddress] --output text | sed "s/\\s*None\\s*//g"', returnStdout:true).trim()
                         env.ZONE_ID = sh(script:"aws route53 list-hosted-zones-by-name --dns-name $DOMAIN_NAME --query HostedZones[].Id --output text | cut -d/ -f3", returnStdout:true).trim()   
                     }
                     sh "sed -i 's|{{DNS}}|$ELB_DNS|g' dnsrecord.json"
@@ -279,60 +161,50 @@ pipeline{
             }
         }
 
-        stage('ssl-tls-record'){
+        stage('Aws-Certificate-Manager'){
             agent any
             steps{
                 withAWS(credentials: 'mycredentials', region: 'us-east-1') {
-                    sh "kubectl apply --validate=false -f https://raw.githubusercontent.com/jetstack/cert-manager/release-0.11/deploy/manifests/00-crds.yaml"
-                    sh "helm repo add jetstack https://charts.jetstack.io"
-                    sh "helm repo update"
+
                     sh '''
-                        NameSpace=$(kubectl get namespaces | grep -i cert-manager) || true
-                        if [ "$NameSpace" == '' ]
+                        Acm=$(aws acm list-certificates --query CertificateSummaryList[].[CertificateArn,DomainName] --output text | grep $FQDN) || true
+                        if [ "$Acm" == '' ]
                         then
-                            kubectl create namespace cert-manager
-                        else
-                            helm delete cert-manager --namespace cert-manager
-                            kubectl delete namespace cert-manager
-                            kubectl create namespace cert-manager
+                            aws acm request-certificate --domain-name $FQDN --validation-method DNS --query CertificateArn --region ${AWS_REGION}
+                        
                         fi
                     '''
-                    sh """
-                      helm install cert-manager jetstack/cert-manager \
-                      --namespace cert-manager \
-                      --version v0.11.1 \
-                      --set webhook.enabled=false \
-                      --set installCRDs=true
-                    """
-                    sh """
-                      sudo openssl req -x509 -nodes -days 90 -newkey rsa:2048 \
-                          -out clarusway-cert.crt \
-                          -keyout clarusway-cert.key \
-                          -subj "/CN=$FQDN/O=$SEC_NAME"
-                    """
+                        
+                }                  
+            }
+        }
+
+        stage('ssl-tls-record-validate'){
+            agent any
+            steps{
+                withAWS(credentials: 'mycredentials', region: 'us-east-1') {
+                    script {
+                        env.SSL_CERT_ARN = sh(script:"aws acm list-certificates --query CertificateSummaryList[].[CertificateArn,DomainName]   --output text | grep $FQDN | cut -f1", returnStdout:true).trim()
+                        env.SSL_CERT_NAME = sh(script:"aws acm describe-certificate --certificate-arn $SSL_CERT_ARN --query Certificate.DomainValidationOptions --output text | tail -n 1 | cut -f2", returnStdout:true).trim()
+                        env.SSL_CERT_VALUE = sh(script:"aws acm describe-certificate --certificate-arn $SSL_CERT_ARN --query Certificate.DomainValidationOptions --output text | tail -n 1 | cut -f4", returnStdout:true).trim()   
+                    }
+
+                    sh "sed -i 's|{{SSL_CERT_NAME}}|$SSL_CERT_NAME|g' deletecertificate.json"
+                    sh "sed -i 's|{{SSL_CERT_VALUE}}|$SSL_CERT_VALUE|g' deletecertificate.json"
+
                     sh '''
-                        SecretNm=$(kubectl get secrets | grep -i $SEC_NAME) || true
-                        if [ "$SecretNm" == '' ]
+                        SSLRecordSet=$(aws route53 list-resource-record-sets   --hosted-zone-id $ZONE_ID   --query ResourceRecordSets[] | grep -i $SSL_CERT_VALUE) || true
+                        if [ "$SSLRecordSet" != '' ]
                         then
-                            kubectl create secret --namespace $NM_SP  tls $SEC_NAME \
-                                --key clarusway-cert.key \
-                                --cert clarusway-cert.crt
-                        else
-                            kubectl delete secret --namespace $NM_SP $SEC_NAME
-                            kubectl create secret --namespace $NM_SP tls $SEC_NAME \
-                                --key clarusway-cert.key \
-                                --cert clarusway-cert.crt
+                            aws route53 change-resource-record-sets --hosted-zone-id $ZONE_ID --change-batch file://deletecertificate.json
+                        
                         fi
                     '''
-                    sleep(5)
-                    sh "sed -i 's|{{FQDN}}|$FQDN|g' ingress-service.yaml" 
-                    sh "sudo mv -f ingress-service-https.yaml ingress-service.yaml" 
-                    sh "kubectl apply --namespace $NM_SP -f ssl-tls-cluster-issuer.yaml"
-                    sh "sed -i 's|{{FQDN}}|$FQDN|g' ingress-service.yaml"
-                    sh "sed -i 's|{{SEC_NAME}}|$SEC_NAME|g' ingress-service.yaml"
-                    sh "kubectl apply --namespace $NM_SP -f ingress-service.yaml"
-                    sh "sudo mv -f /var/lib/jenkins/.kube/config /home/ec2-user/.kube/"
-                    sh "sudo chmod 777 /home/ec2-user/.kube/config"            
+
+                    sh "sed -i 's|{{SSL_CERT_NAME}}|$SSL_CERT_NAME|g' certificate.json"
+                    sh "sed -i 's|{{SSL_CERT_VALUE}}|$SSL_CERT_VALUE|g' certificate.json"
+                    sh "aws route53 change-resource-record-sets --hosted-zone-id $ZONE_ID --change-batch file://certificate.json"
+                                 
                 }                  
             }
         }
@@ -342,6 +214,11 @@ pipeline{
         always {
             echo 'Deleting all local images'
             sh 'docker image prune -af'
+            sh '''#!/bin/sh
+                if [ -f $FILE ] ; then
+                rm -rf $FILE
+                fi
+            '''
         }
         failure {
             withAWS(credentials: 'mycredentials', region: 'us-east-1') {
