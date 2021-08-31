@@ -1,5 +1,5 @@
 pipeline{
-    agent { label "master" }
+    agent any
     environment {
         PATH="/usr/local/bin/:${env.PATH}"
         CFN_KEYPAIR="the-doctor"
@@ -211,14 +211,7 @@ pipeline{
     
     }
     post {
-        always {
-            
-            sh '''#!/bin/sh
-                if [ -f $FILE ] ; then
-                rm -rf $FILE
-                fi
-            '''
-        }
+        
         success {
             echo "You are Greattt...You can visit https://$FQDN"
         }
