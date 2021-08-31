@@ -1,6 +1,6 @@
 pipeline{
-    agent any
-    environment{
+    agent { label "master" }
+    environment {
         PATH="/usr/local/bin/:${env.PATH}"
         CFN_KEYPAIR="the-doctor"
         AWS_REGION = "us-east-1"
