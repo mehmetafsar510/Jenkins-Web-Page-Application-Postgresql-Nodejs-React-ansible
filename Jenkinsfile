@@ -1,19 +1,13 @@
 pipeline{
     agent any
     environment {
-        MYSQL_DATABASE_PASSWORD = "Clarusway"
-        MYSQL_DATABASE_USER = "admin"
-        MYSQL_DATABASE_DB = "phonebook"
-        MYSQL_DATABASE_PORT = 3306
         PATH="/usr/local/bin/:${env.PATH}"
-        ECR_REGISTRY = "646075469151.dkr.ecr.us-east-1.amazonaws.com"
-        APP_REPO_NAME= "phonebook/app"
         CFN_KEYPAIR="the-doctor"
         AWS_REGION = "us-east-1"
         FQDN = "nodejs.mehmetafsar.com"
         DOMAIN_NAME = "mehmetafsar.com"
         VAULT_CREDS=  credentials("${VAULT_ID}")
-        FILE = 'secret.txt'
+        FILE = "secret.txt"
         GIT_FOLDER = sh(script:'echo ${GIT_URL} | sed "s/.*\\///;s/.git$//"', returnStdout:true).trim()
     }
     stages{
