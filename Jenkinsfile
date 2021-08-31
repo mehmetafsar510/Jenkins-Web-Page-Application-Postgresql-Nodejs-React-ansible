@@ -115,7 +115,7 @@ pipeline{
                 sh "sed -i 's|{{nodejs_dns_name}}|$NODEJS_INSTANCE_PUBLIC_DNS|g' todo-app-pern/client/.env"
                 sh "sed -i 's|{{postgresql_internal_private_dns}}|$POSTGRESQL_INSTANCE_PRİVATE_DNS|g' todo-app-pern/server/.env"
                 sh "echo '${VAULT_CREDS_PSW}' > secret.txt"
-                sh "ansible-playbook docker_project.yml  --vault-password-file secret.txt -e '@configs/secret.yml'"
+                sh "ansible-playbook docker_project.yml  --vault-password-file secret.txt -e '\@configs/secret.yml'"
                     }
                 }
 
