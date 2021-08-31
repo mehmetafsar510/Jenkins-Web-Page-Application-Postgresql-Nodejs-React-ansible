@@ -212,43 +212,12 @@ pipeline{
     }
     post {
         always {
-            echo 'Deleting all local images'
-            sh 'docker image prune -af'
+            
             sh '''#!/bin/sh
                 if [ -f $FILE ] ; then
                 rm -rf $FILE
                 fi
             '''
-        }
-        failure {
-            withAWS(credentials: 'mycredentials', region: 'us-east-1') {
-                sh "rm -rf '${WORKSPACE}/.env'"
-                sh """
-                aws ec2 detach-volume \
-                  --volume-id ${EBS_VOLUME_ID} \
-                """
-                sh """
-                aws ecr delete-repository \
-                  --repository-name ${APP_REPO_NAME} \
-                  --region ${AWS_REGION}\
-                  --force
-                """
-                sh """
-                aws rds delete-db-instance \
-                  --db-instance-identifier mysql-instance \
-                  --skip-final-snapshot \
-                  --delete-automated-backups
-                """
-                sh """
-                aws ec2 delete-key-pair \
-                  --key-name ${CFN_KEYPAIR}.pem
-                """
-                sh "rm -rf '${WORKSPACE}/the_doctor_public.pem'"
-                sh "rm -rf '${WORKSPACE}/${CFN_KEYPAIR}.pem'"
-                sh "eksctl delete cluster ${CLUSTER_NAME}"
-                sh "docker rm -f '\$(docker ps -a -q)'"
-                sh "kubectl delete -f k8s"
-            }    
         }
         success {
             echo "You are Greattt...You can visit https://$FQDN"
