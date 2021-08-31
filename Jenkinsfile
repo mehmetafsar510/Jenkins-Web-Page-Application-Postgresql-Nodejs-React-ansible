@@ -64,9 +64,9 @@ pipeline{
             }
         }
 
-        stage('Control the react nodejs postgresql instance') {
+        stage('Control the nodejs instance') {
             steps {
-                echo 'Control the react nodejs postgresql instance'
+                echo 'Control the  postgresql instance'
             script {
                 while(true) {
                         
@@ -86,9 +86,9 @@ pipeline{
             }
         }
 
-        stage('Control the react nodejs postgresql instance') {
+        stage('Control the  postgresql instance') {
             steps {
-                echo 'Control the react nodejs postgresql instance'
+                echo 'Control the  postgresql instance'
             script {
                 while(true) {
                         
