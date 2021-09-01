@@ -111,7 +111,7 @@ pipeline{
                 sh "sed -i 's|{{postgresql_internal_private_dns}}|$POSTGRESQL_INSTANCE_PRİVATE_DNS|g' todo-app-pern/server/.env"
                 sh "sed -i 's|{{workspace}}|${WORKSPACE}|g' docker_project.yml"
                 sh "sudo ansible-playbook ./docker_project.yml -i ./inventory_aws_ec2.yml ${AnsibleVault}"
-                )
+                
                 }
             }
         }
