@@ -18,7 +18,7 @@ pipeline{
                   sudo yum install -y yum-utils
                   sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo
                   sudo yum -y install terraform
-                  pip3 install --user ansible
+                  sudo pip3 install --user ansible
                   pip3 install --user boto3 botocore
                   sudo yum install python-boto3 -y
                 """
@@ -104,15 +104,16 @@ pipeline{
   
         stage('Setting up  configuration with ansible') {
             steps {
-                withCredentials([[$class: 'StringBinding', vaultCredentialsId: 'AnsibleVault', variable: 'AnsibleVault']]) {
                 echo "Setting up  configuration with ansible"
                 sh "sed -i 's|{{key_pair}}|${CFN_KEYPAIR}.pem|g' ansible.cfg"
                 sh "sed -i 's|{{nodejs_dns_name}}|$NODEJS_INSTANCE_PUBLIC_DNS|g' todo-app-pern/client/.env"
                 sh "sed -i 's|{{postgresql_internal_private_dns}}|$POSTGRESQL_INSTANCE_PRİVATE_DNS|g' todo-app-pern/server/.env"
                 sh "sed -i 's|{{workspace}}|${WORKSPACE}|g' docker_project.yml"
-                sh "sudo ansible-playbook ./docker_project.yml -i ./inventory_aws_ec2.yml ${AnsibleVault}"
-                
-                }
+                ansiblePlaybook(
+                    vaultCredentialsId: 'AnsibleVault',
+                    inventory: './inventory_aws_ec2.yml',
+                    playbook: './docker_project.yml'
+                )
             }
         }
 
