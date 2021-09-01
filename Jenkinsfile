@@ -111,7 +111,8 @@ pipeline{
                 sh "sed -i 's|{{workspace}}|${WORKSPACE}|g' docker_project.yml"
                 ansiblePlaybook(
                     vaultCredentialsId: 'AnsibleVault',
-                    sudoUser: 'true',
+                    sudo: 'true',
+                    sudoUser: 'jenkins',
                     inventory: './inventory_aws_ec2.yml',
                     playbook: './docker_project.yml'
                 )
