@@ -3,7 +3,7 @@
   any_errors_fatal: true
   hosts: _development
   become: true
-  become_user: root
+  become_user: jenkins
   tasks:
     - name: upgrade all packages
       yum:
