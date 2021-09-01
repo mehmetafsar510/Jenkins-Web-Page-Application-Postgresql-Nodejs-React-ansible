@@ -9,15 +9,12 @@ pipeline{
         GIT_FOLDER = sh(script:'echo ${GIT_URL} | sed "s/.*\\///;s/.git$//"', returnStdout:true).trim()
     }
     stages{
-        stage('Setup  helm terraform ansible  binaries') {
+        stage('Setup terraform ansible  binaries') {
             steps {
               script {
 
-                println "Setup  helm teraform ansible  binaries..."
+                println "Setup teraform ansible  binaries..."
                 sh """
-                  curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
-                  chmod 700 get_helm.sh
-                  ./get_helm.sh
                   sudo yum install -y yum-utils
                   sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo
                   sudo yum -y install terraform
