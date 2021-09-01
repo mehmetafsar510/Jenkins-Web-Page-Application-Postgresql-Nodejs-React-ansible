@@ -7,7 +7,7 @@ module "network" {
   vpc_cidr_block   = var.vpc_cidr
   public_sn_count  = 2
   private_sn_count = 2
-  max_subnets      = 20
+  max_subnets      = 6
   public_cidrs     = [for i in range(10, 255, 10) : cidrsubnet(var.vpc_cidr, 8, i)]
   private_cidrs    = [for i in range(11, 255, 10) : cidrsubnet(var.vpc_cidr, 8, i)]
 }

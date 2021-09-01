@@ -14,7 +14,6 @@ resource "aws_instance" "nodejs" {
     vpc_security_group_ids = [aws_security_group.matt-nodejs-sg.id]
     key_name = var.key_name
     subnet_id = var.public_subnets
-    availability_zone = "us-east-1a"
     tags = {
         Name = "ansible_nodejs"
         environment = "development"
@@ -29,7 +28,6 @@ resource "aws_instance" "react" {
     vpc_security_group_ids = [aws_security_group.matt-react-sg.id]
     key_name = var.key_name
     subnet_id = var.public_subnets
-    availability_zone = "us-east-1a"
     tags = {
         Name = "ansible_react"
         environment = "development"
@@ -43,7 +41,6 @@ resource "aws_instance" "postgress" {
     vpc_security_group_ids = [aws_security_group.matt-postgress-sg.id]
     key_name = var.key_name
     subnet_id = var.public_subnets
-    availability_zone = "us-east-1a"
     tags = {
         Name = "ansible_postgresql"
         environment = "development"
