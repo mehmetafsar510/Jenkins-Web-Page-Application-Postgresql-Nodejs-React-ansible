@@ -33,13 +33,13 @@ pipeline{
             agent any
             steps{
                 sh '''
-                    if [ -f "${CFN_KEYPAIR}.pem" ]
+                    if [ -f "${CFN_KEYPAIR}" ]
                     then 
                         echo "file exists..."
                     else
                         aws ec2 create-key-pair \
                           --region ${AWS_REGION} \
-                          --key-name ${CFN_KEYPAIR}.pem \
+                          --key-name ${CFN_KEYPAIR} \
                           --query KeyMaterial \
                           --output text > ${CFN_KEYPAIR}.pem
 
@@ -108,7 +108,7 @@ pipeline{
         stage('Setting up  configuration with ansible') {
             steps {
                 echo "Setting up  configuration with ansible"
-                sh "sed -i 's|{{key_pair}}|${CFN_KEYPAIR}.pem|g' ansible.cfg"
+                sh "sed -i 's|{{key_pair}}|${CFN_KEYPAIR}|g' ansible.cfg"
                 sh "sed -i 's|{{nodejs_dns_name}}|$NODEJS_INSTANCE_PUBLIC_DNS|g' todo-app-pern/client/.env"
                 sh "sed -i 's|{{postgresql_internal_private_dns}}|$POSTGRESQL_INSTANCE_PRİVATE_DNS|g' todo-app-pern/server/.env"
                 ansiblePlaybook(
