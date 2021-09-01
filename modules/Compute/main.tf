@@ -142,6 +142,6 @@ resource "aws_security_group" "matt-react-sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
   tags = {
-    Name = "nodejs-secgroup"
+    Name = "react-secgroup"
   }
 }
