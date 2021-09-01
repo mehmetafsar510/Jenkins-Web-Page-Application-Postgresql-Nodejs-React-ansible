@@ -114,7 +114,7 @@ resource "aws_security_group" "matt-nodejs-sg" {
 }
 
 resource "aws_security_group" "matt-react-sg" {
-  name = "nodejs-sec-group-for-matt"
+  name = "react-sec-group-for-matt"
   vpc_id = var.vpc_id
 
   ingress {
