@@ -108,7 +108,8 @@ pipeline{
                 sh "sed -i 's|{{key_pair}}|${CFN_KEYPAIR}.pem|g' ansible.cfg"
                 sh "sed -i 's|{{nodejs_dns_name}}|$NODEJS_INSTANCE_PUBLIC_DNS|g' todo-app-pern/client/.env"
                 sh "sed -i 's|{{postgresql_internal_private_dns}}|$POSTGRESQL_INSTANCE_PRİVATE_DNS|g' todo-app-pern/server/.env"
-                ansiblePlaybook(
+                sh "sed -i 's|{{workspace}}|${WORKSPACE}|g' docker_project.yml"
+                sudo ansiblePlaybook(
                     vaultCredentialsId: 'AnsibleVault',
                     inventory: './inventory_aws_ec2.yml',
                     playbook: './docker_project.yml'

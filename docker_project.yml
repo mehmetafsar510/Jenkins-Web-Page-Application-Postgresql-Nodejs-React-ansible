@@ -65,7 +65,7 @@
   gather_facts: No
   any_errors_fatal: true
   vars:
-    postgre_home: /home/ec2-user/solution/postgre_files
+    postgre_home: {{workspace}}/postgre_files
     postgre_container: /home/ec2-user/postgresql
     container_name: mehmet_postgre
     image_name: mehmet/postgre
@@ -112,7 +112,7 @@
   gather_facts: No
   any_errors_fatal: true
   vars:
-    nodejs_home: /home/ec2-user/solution/nodejs_files
+    nodejs_home: {{workspace}}/nodejs_files
     container_path: /home/ec2-user/nodejs
     container_name: mehmet_nodejs
     image_name: mehmet/nodejs
@@ -127,11 +127,11 @@
     # at this point do not forget change DB_HOST env variable for postgresql node
     - name: copy files to the nodejs node
       copy:
-        src: /home/ec2-user/solution/todo-app-pern/server/
+        src: {{workspace}}/todo-app-pern/server/
         dest: "{{ container_path }}"
     - name: copy the Dockerfile
       copy:
-        src: "{{nodejs_home}}//Dockerfile"
+        src: "{{nodejs_home}}/Dockerfile"
         dest: "{{ container_path }}"
     - name: remove {{ container_name }} container and {{ image_name }} if exists
       shell: "docker ps -q --filter 'name={{ container_name }}' | grep -q . && docker stop {{ container_name }} && docker rm -fv {{ container_name }} && docker image rm -f {{ image_name }} || echo 'Not Found'"
@@ -155,7 +155,7 @@
   gather_facts: No
   any_errors_fatal: true
   vars:
-    react_home: /home/ec2-user/solution/react_files
+    react_home: {{workspace}}/react_files
     container_path: /home/ec2-user/react
     container_name: mehmet_react
     image_name: mehmet/react
@@ -170,7 +170,7 @@
     # at this point do not forget change DB_HOST env variable for postgresql node
     - name: copy files to the react node
       copy:
-        src: /home/ec2-user/solution/todo-app-pern/client/
+        src: {{workspace}}/todo-app-pern/client/
         dest: "{{ container_path }}"
     - name: copy the Dockerfile
       copy:
