@@ -6,8 +6,6 @@ pipeline{
         AWS_REGION = "us-east-1"
         FQDN = "nodejs.mehmetafsar.com"
         DOMAIN_NAME = "mehmetafsar.com"
-        VAULT_CREDS=  credentials("${VAULT_ID}")
-        FILE = "secret.txt"
         GIT_FOLDER = sh(script:'echo ${GIT_URL} | sed "s/.*\\///;s/.git$//"', returnStdout:true).trim()
     }
     stages{
@@ -110,12 +108,14 @@ pipeline{
         stage('Setting up  configuration with ansible') {
             steps {
                 echo "Setting up  configuration with ansible"
-    
                 sh "sed -i 's|{{key_pair}}|${CFN_KEYPAIR}.pem|g' ansible.cfg"
                 sh "sed -i 's|{{nodejs_dns_name}}|$NODEJS_INSTANCE_PUBLIC_DNS|g' todo-app-pern/client/.env"
                 sh "sed -i 's|{{postgresql_internal_private_dns}}|$POSTGRESQL_INSTANCE_PRİVATE_DNS|g' todo-app-pern/server/.env"
-                sh "echo '${VAULT_CREDS_PSW}' > secret.txt"
-                sh "ansible-playbook docker_project.yml  --vault-password-file secret.txt -e '\@configs/secret.yml'"
+                ansiblePlaybook(
+                    vaultCredentialsId: 'AnsibleVault',
+                    inventory: './inventory_aws_ec2.yml',
+                    playbook: './docker_project.yml'
+                )
                     }
                 }
 
