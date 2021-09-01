@@ -3,6 +3,8 @@
   any_errors_fatal: true
   hosts: _development
   become: true
+  become_user: jenkins
+  become_method: sudo
   tasks:
     - name: upgrade all packages
       yum:
