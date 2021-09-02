@@ -104,18 +104,16 @@ pipeline{
   
         stage('Setting up  configuration with ansible') {
             steps {
-                echo "Setting up  configuration with ansible"
-                sh "sed -i 's|{{key_pair}}|${CFN_KEYPAIR}.pem|g' ansible.cfg"
-                sh "sed -i 's|{{nodejs_dns_name}}|$NODEJS_INSTANCE_PUBLIC_DNS|g' todo-app-pern/client/.env"
-                sh "sed -i 's|{{postgresql_internal_private_dns}}|$POSTGRESQL_INSTANCE_PRİVATE_DNS|g' todo-app-pern/server/.env"
-                sh "sed -i 's|{{workspace}}|${WORKSPACE}|g' docker_project.yml"
-                ansiblePlaybook(
-                    vaultCredentialsId: 'AnsibleVault',
-                    inventory: './inventory_aws_ec2.yml',
-                    playbook: './docker_project.yml'
-                )
+                withCredentials([file(credentialsId: 'AnsibleVault', variable: 'VAULT_TOKEN')]) {
+                    echo "Setting up  configuration with ansible"
+                    sh "sed -i 's|{{key_pair}}|${CFN_KEYPAIR}.pem|g' ansible.cfg"
+                    sh "sed -i 's|{{nodejs_dns_name}}|$NODEJS_INSTANCE_PUBLIC_DNS|g' todo-app-pern/client/.env"
+                    sh "sed -i 's|{{postgresql_internal_private_dns}}|$POSTGRESQL_INSTANCE_PRİVATE_DNS|g' todo-app-pern/server/.env"
+                    sh "sed -i 's|{{workspace}}|${WORKSPACE}|g' docker_project.yml"
+                    sh "sudo ansible-playbook ./docker_project.yml -i ./inventory_aws_ec2.yml --vault-password-file ${VAULT_TOKEN}"
             }
         }
+    }
 
 
         stage('dns-record-control'){
