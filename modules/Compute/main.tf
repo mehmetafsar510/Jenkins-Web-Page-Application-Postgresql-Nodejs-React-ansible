@@ -1,14 +1,14 @@
 
-data "aws_ami" "amazon-linux-2" {
+data "aws_ami" "rhel7_5" {
   most_recent = true
-  owners      = ["amazon"]
+  owners      = ["309956199498"]
   filter {
     name   = "name"
-    values = ["amzn2-ami-hvm*"]
+    values = ["RHEL-7.5*"]
   }
 }
 resource "aws_instance" "nodejs" {
-    ami = data.aws_ami.amazon-linux-2.id
+    ami = data.aws_ami.rhel7_5.id
     instance_type = "t2.micro"
     iam_instance_profile = var.master_profile_name
     vpc_security_group_ids = [aws_security_group.matt-nodejs-sg.id]
