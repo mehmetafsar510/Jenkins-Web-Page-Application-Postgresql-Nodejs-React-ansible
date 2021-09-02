@@ -58,8 +58,8 @@
 - name: Postgre Database configuration
   hosts: _ansible_postgresql
   become: true
-  vars_files:
-    - secret.yml
+  #vars_files:
+    #- secret.yml
   gather_facts: No
   any_errors_fatal: true
   vars:
@@ -100,7 +100,7 @@
         ports:
         - "5432:5432"
         env:
-          POSTGRES_PASSWORD: "{{ pwhash | password_hash ('sha512') }}"
+          POSTGRES_PASSWORD: "Pp12345678" #"{{ pwhash | password_hash ('sha512') }}"
         volumes:
           - /custom/mount:/var/lib/postgresql/data
       register: docker_info
@@ -140,7 +140,7 @@
           path: "{{ container_path }}"
         source: build
         state: present
-    - name: Launch postgresql docker container
+    - name: Launch nodejs docker container
       docker_container:
         name: "{{ container_name }}"
         image: "{{ image_name }}"
