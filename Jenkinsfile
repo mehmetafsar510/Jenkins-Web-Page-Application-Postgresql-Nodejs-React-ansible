@@ -65,14 +65,14 @@ pipeline{
                 while(true) {
                         
                         echo "NOdejs is not UP and running yet. Will try to reach again after 10 seconds..."
-                        sleep(10)
+                        sleep(5)
 
                         ip = sh(script:'aws ec2 describe-instances --region ${AWS_REGION} --filters Name=tag-value,Values=ansible_nodejs  --query Reservations[*].Instances[*].[PublicDnsName] --output text | sed "s/\\s*None\\s*//g"', returnStdout:true).trim()
 
                         if (ip.length() >= 7) {
                             echo "Nodejs Public Ip Address Found: $ip"
                             env.NODEJS_INSTANCE_PUBLIC_DNS = "$ip"
-                            sleep(10)
+                            sleep(5)
                             break
                         }
                     }
@@ -87,14 +87,14 @@ pipeline{
                 while(true) {
                         
                         echo "Postgresql is not UP and running yet. Will try to reach again after 10 seconds..."
-                        sleep(10)
+                        sleep(5)
 
                         ip = sh(script:'aws ec2 describe-instances --region ${AWS_REGION} --filters Name=tag-value,Values=ansible_postgresql  --query Reservations[*].Instances[*].[PrivateDnsName] --output text | sed "s/\\s*None\\s*//g"', returnStdout:true).trim()
 
                         if (ip.length() >= 7) {
                             echo "Postgresql Private Ip Address Found: $ip"
                             env.POSTGRESQL_INSTANCE_PRİVATE_DNS = "$ip"
-                            sleep(10)
+                            sleep(5)
                             break
                         }
                     }
@@ -104,7 +104,7 @@ pipeline{
   
         stage('Setting up  configuration with ansible') {
             steps {
-                withCredentials([file(credentialsId: 'AnsibleVault', variable: 'VAULT_TOKEN')]) {
+                withCredentials(vaultCredentialsId: 'AnsibleVault', variable: 'VAULT_TOKEN') {
                     echo "Setting up  configuration with ansible"
                     sh "sed -i 's|{{key_pair}}|${CFN_KEYPAIR}.pem|g' ansible.cfg"
                     sh "sed -i 's|{{nodejs_dns_name}}|$NODEJS_INSTANCE_PUBLIC_DNS|g' todo-app-pern/client/.env"
