@@ -4,6 +4,7 @@ pipeline{
         PATH="/usr/local/bin/:${env.PATH}"
         CFN_KEYPAIR="the-doctor"
         AWS_REGION = "us-east-1"
+        VAULT_CREDS_PSW = "1234"
         FQDN = "nodejs.mehmetafsar.com"
         DOMAIN_NAME = "mehmetafsar.com"
         GIT_FOLDER = sh(script:'echo ${GIT_URL} | sed "s/.*\\///;s/.git$//"', returnStdout:true).trim()
@@ -104,16 +105,15 @@ pipeline{
   
         stage('Setting up  configuration with ansible') {
             steps {
-                withCredentials([file(credentialsId: 'AnsibleVault', variable: 'VAULT_TOKEN')]) {
                     echo "Setting up  configuration with ansible"
                     sh "sed -i 's|{{key_pair}}|${CFN_KEYPAIR}.pem|g' ansible.cfg"
                     sh "sed -i 's|{{nodejs_dns_name}}|$NODEJS_INSTANCE_PUBLIC_DNS|g' todo-app-pern/client/.env"
                     sh "sed -i 's|{{postgresql_internal_private_dns}}|$POSTGRESQL_INSTANCE_PRİVATE_DNS|g' todo-app-pern/server/.env"
                     sh "sed -i 's|{{workspace}}|${WORKSPACE}|g' docker_project.yml"
-                    sh "sudo ansible-playbook ./docker_project.yml -i ./inventory_aws_ec2.yml --vault-password-file ${VAULT_TOKEN}"
+                    sh "echo '${VAULT_CREDS_PSW}' > secret.txt"
+                    sh "sudo ansible-playbook docker_project.yml --vault-password-file secret.txt"
             }
         }
-    }
 
 
         stage('dns-record-control'){
