@@ -22,7 +22,7 @@ resource "aws_instance" "nodejs" {
 }
 
 resource "aws_instance" "react" {
-    ami = data.aws_ami.amazon-linux-2.id
+    ami = data.aws_ami.rhel7_5.id
     instance_type = "t2.micro"
     iam_instance_profile = var.worker_profile_name
     vpc_security_group_ids = [aws_security_group.matt-react-sg.id]
@@ -35,7 +35,7 @@ resource "aws_instance" "react" {
 }
 
 resource "aws_instance" "postgress" {
-    ami = data.aws_ami.amazon-linux-2.id
+    ami = data.aws_ami.rhel7_5.id
     instance_type = "t2.micro"
     iam_instance_profile = var.worker_profile_name
     vpc_security_group_ids = [aws_security_group.matt-postgress-sg.id]
