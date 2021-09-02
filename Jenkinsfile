@@ -73,7 +73,6 @@ pipeline{
                         if (ip.length() >= 7) {
                             echo "Nodejs Public Ip Address Found: $ip"
                             env.NODEJS_INSTANCE_PUBLIC_DNS = "$ip"
-                            sleep(5)
                             break
                         }
                     }
@@ -95,7 +94,6 @@ pipeline{
                         if (ip.length() >= 7) {
                             echo "Postgresql Private Ip Address Found: $ip"
                             env.POSTGRESQL_INSTANCE_PRİVATE_DNS = "$ip"
-                            sleep(5)
                             break
                         }
                     }
