@@ -1,14 +1,14 @@
 
-data "aws_ami" "rhel7_5" {
+data "aws_ami" "rhel8" {
   most_recent = true
   owners      = ["309956199498"]
   filter {
     name   = "name"
-    values = ["RHEL-7.5*"]
+    values = ["RHEL-8*"]
   }
 }
 resource "aws_instance" "nodejs" {
-    ami = data.aws_ami.rhel7_5.id
+    ami = data.aws_ami.rhel8.id
     instance_type = "t2.micro"
     iam_instance_profile = var.master_profile_name
     vpc_security_group_ids = [aws_security_group.matt-nodejs-sg.id]
@@ -17,12 +17,13 @@ resource "aws_instance" "nodejs" {
     tags = {
         Name = "ansible_nodejs"
         environment = "development"
+        stack = "ansible_project"
         
     }
 }
 
 resource "aws_instance" "react" {
-    ami = data.aws_ami.rhel7_5.id
+    ami = data.aws_ami.rhel8.id
     instance_type = "t2.micro"
     iam_instance_profile = var.worker_profile_name
     vpc_security_group_ids = [aws_security_group.matt-react-sg.id]
@@ -31,11 +32,12 @@ resource "aws_instance" "react" {
     tags = {
         Name = "ansible_react"
         environment = "development"
+        stack = "ansible_project"
     }
 }
 
 resource "aws_instance" "postgress" {
-    ami = data.aws_ami.rhel7_5.id
+    ami = data.aws_ami.rhel8.id
     instance_type = "t2.micro"
     iam_instance_profile = var.worker_profile_name
     vpc_security_group_ids = [aws_security_group.matt-postgress-sg.id]
@@ -44,6 +46,7 @@ resource "aws_instance" "postgress" {
     tags = {
         Name = "ansible_postgresql"
         environment = "development"
+        stack = "ansible_project"
     }
 }
 
