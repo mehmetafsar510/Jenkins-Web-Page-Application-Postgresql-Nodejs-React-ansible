@@ -104,7 +104,7 @@ pipeline{
   
         stage('Setting up  configuration with ansible') {
             steps {
-                withCredentials(vaultCredentialsId: 'AnsibleVault', variable: 'VAULT_TOKEN') {
+                withCredentials([file(credentialsId: 'AnsibleVault', variable: 'VAULT_TOKEN')]) {
                     echo "Setting up  configuration with ansible"
                     sh "sed -i 's|{{key_pair}}|${CFN_KEYPAIR}.pem|g' ansible.cfg"
                     sh "sed -i 's|{{nodejs_dns_name}}|$NODEJS_INSTANCE_PUBLIC_DNS|g' todo-app-pern/client/.env"
