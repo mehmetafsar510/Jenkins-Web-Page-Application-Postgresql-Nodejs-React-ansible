@@ -6,6 +6,6 @@
                             "Name": "{{FQDN}}",
                             "Type": "A",
                             "TTL": 300,
-                         "ResourceRecords": [{ "Value": "{{DNS}}:3000"}]
+                         "ResourceRecords": [{ "Value": "{{DNS}}"}]
 }}]
 }
