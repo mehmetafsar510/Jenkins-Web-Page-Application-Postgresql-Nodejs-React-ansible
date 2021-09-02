@@ -1,6 +1,7 @@
 import React, { Fragment, useEffect, useState } from "react";
 import EditTodo from "./EditTodo";
 import "./style.css";
+const BASE_URL = process.env.REACT_APP_BASE_URL;
 
 const ListTodo = () => {
   const [todos, setTodos] = useState([]);
@@ -9,7 +10,7 @@ const ListTodo = () => {
 
   const deleteTodo = async (id) => {
     try {
-      const deleteTodo = await fetch(`http://localhost:5000/todos/${id}`, {
+      const deleteTodo = await fetch(`${BASE_URL}todos/${id}`, {
         method: "DELETE",
       });
 
@@ -22,7 +23,7 @@ const ListTodo = () => {
 
   const getTodos = async () => {
     try {
-      const response = await fetch("http://localhost:5000/todos");
+      const response = await fetch(`${BASE_URL}todos`);
       const jsonData = await response.json();
 
       setTodos(jsonData);
@@ -34,8 +35,6 @@ const ListTodo = () => {
   useEffect(() => {
     getTodos();
   }, []);
-
-  console.log(todos);
 
   return (
     <Fragment>

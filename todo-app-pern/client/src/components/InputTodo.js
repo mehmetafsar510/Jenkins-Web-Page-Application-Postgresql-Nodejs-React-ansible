@@ -1,5 +1,8 @@
 import React, { Fragment, useState } from "react";
 import "./style.css";
+const BASE_URL = process.env.REACT_APP_BASE_URL;
+
+console.log(BASE_URL);
 
 const InputTodo = () => {
   const [description, setDescription] = useState("");
@@ -11,7 +14,7 @@ const InputTodo = () => {
       if (description) {
         setError("");
         const body = { description };
-        const response = await fetch("http://localhost:5000/todos", {
+        const response = await fetch(`${BASE_URL}todos`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
