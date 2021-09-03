@@ -111,7 +111,7 @@ pipeline{
                     sh "sed -i 's|{{postgresql_internal_private_dns}}|$POSTGRESQL_INSTANCE_PRİVATE_DNS|g' todo-app-pern/server/.env"
                     sh "sed -i 's|{{workspace}}|${WORKSPACE}|g' docker_project.yml"
                     sh "echo ${VAULT_ID} > secret.txt"
-                    sh "sudo ansible-playbook docker_project.yml --vault-password-file secret.txt -e './secret.yml'"
+                    sh "sudo ansible-playbook docker_project.yml"
             }
         }
     }
