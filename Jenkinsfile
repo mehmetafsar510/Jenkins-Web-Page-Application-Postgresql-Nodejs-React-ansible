@@ -4,7 +4,8 @@ pipeline{
         PATH="/usr/local/bin/:${env.PATH}"
         CFN_KEYPAIR="the-doctor"
         AWS_REGION = "us-east-1"
-        VAULT_CREDS_PSW = "1234"
+        VAULT_CREDS = credentials("${VAULT_ID}")
+        FILE = 'secret.txt'
         FQDN = "clarus.mehmetafsar.com"
         DOMAIN_NAME = "mehmetafsar.com"
         GIT_FOLDER = sh(script:'echo ${GIT_URL} | sed "s/.*\\///;s/.git$//"', returnStdout:true).trim()
@@ -110,7 +111,7 @@ pipeline{
                     sh "sed -i 's|{{postgresql_internal_private_dns}}|$POSTGRESQL_INSTANCE_PRİVATE_DNS|g' todo-app-pern/server/.env"
                     sh "sed -i 's|{{workspace}}|${WORKSPACE}|g' docker_project.yml"
                     sh "echo '${VAULT_CREDS_PSW}' > secret.txt"
-                    sh "sudo ansible-playbook docker_project.yml"
+                    sh "sudo ansible-playbook docker_project.yml --vault-password-file secret.txt -e '@configs/secret.yml'"
             }
         }
 
