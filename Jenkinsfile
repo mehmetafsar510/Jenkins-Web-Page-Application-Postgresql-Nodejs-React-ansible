@@ -4,7 +4,7 @@ pipeline{
         PATH="/usr/local/bin/:${env.PATH}"
         CFN_KEYPAIR="the-doctor"
         AWS_REGION = "us-east-1"
-        VAULT_CREDS = credentials("$VAULT_ID")
+        VAULT_CREDS = credentials("\${VAULT_ID}")
         FILE = 'secret.txt'
         FQDN = "clarus.mehmetafsar.com"
         DOMAIN_NAME = "mehmetafsar.com"
