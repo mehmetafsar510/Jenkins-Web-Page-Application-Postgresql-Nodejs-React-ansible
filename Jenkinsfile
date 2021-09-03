@@ -4,7 +4,6 @@ pipeline{
         PATH="/usr/local/bin/:${env.PATH}"
         CFN_KEYPAIR="the-doctor"
         AWS_REGION = "us-east-1"
-        VAULT_CREDS = credentials("\${VAULT_ID}")
         FILE = 'secret.txt'
         FQDN = "clarus.mehmetafsar.com"
         DOMAIN_NAME = "mehmetafsar.com"
@@ -105,12 +104,13 @@ pipeline{
   
         stage('Setting up  configuration with ansible') {
             steps {
+               withCredentials([string(credentialsId: 'VAULT_ID', variable: 'VAULT_ID')]) { 
                     echo "Setting up  configuration with ansible"
                     sh "sed -i 's|{{key_pair}}|deneme.pem|g' ansible.cfg"
                     sh "sed -i 's|{{nodejs_dns_name}}|$NODEJS_INSTANCE_PUBLIC_DNS|g' todo-app-pern/client/.env"
                     sh "sed -i 's|{{postgresql_internal_private_dns}}|$POSTGRESQL_INSTANCE_PRİVATE_DNS|g' todo-app-pern/server/.env"
                     sh "sed -i 's|{{workspace}}|${WORKSPACE}|g' docker_project.yml"
-                    sh "echo '${VAULT_CREDS_PSW}' > secret.txt"
+                    sh "echo '${VAULT_ID}' > secret.txt"
                     sh "sudo ansible-playbook docker_project.yml --vault-password-file secret.txt -e '@configs/secret.yml'"
             }
         }
