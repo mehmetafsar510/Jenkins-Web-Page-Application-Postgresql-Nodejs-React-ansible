@@ -206,7 +206,7 @@ pipeline{
     }
     post { 
         success {
-            echo "You are Greattt...You can visit https://$FQDN"
+            echo "You are Greattt...You can visit http://$FQDN"
         }
     }
 }
