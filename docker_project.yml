@@ -157,6 +157,8 @@
     container_path: /home/ec2-user/react
     container_name: mehmet_react
     image_name: mehmet/react
+    artf_container_name: mehmet_react_artf
+    artf_image_name: mehmet/react_artf
   tasks:
     - name: create build directory
       file:
@@ -176,17 +178,19 @@
         dest: "{{ container_path }}"
     - name: remove {{ container_name }} container and {{ image_name }} image if exists
       shell: "docker ps -q --filter 'name={{ container_name }}' | grep -q . && docker stop {{ container_name }} && docker rm -fv {{ container_name }} && docker image rm -f {{ image_name }} || echo 'Not Found'"
+    - name: remove {{ artf_container_name }} container and {{ artf_image_name }} image if exists
+      shell: "docker ps -q --filter 'name={{ artf_container_name }}' | grep -q . && docker stop {{ artf_container_name }} && docker rm -fv {{ artf_container_name }} && docker image rm -f {{ artf_image_name }} || echo 'Not Found'"
     - name: build container image
       docker_image:
-        name: "{{ image_name }}"
+        name: "{{ artf_image_name }}"
         build:
           path: "{{ container_path }}"
         source: build
         state: present
-    - name: Launch react docker container
+    - name: Launch nginx and react artifact container
       docker_container:
-        name: "{{ container_name }}"
-        image: "{{ image_name }}"
+        name: "{{ artf_container_name }}"
+        image: "{{ artf_image_name }}"
         state: started
         ports:
-        - "3000:3000"
+        - "80:80"

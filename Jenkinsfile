@@ -207,13 +207,6 @@ pipeline{
     
     }
     post {
-        always {
-            
-            sh '''#!/bin/sh
-                if [ -f $FILE ] ; then
-                rm -rf $FILE
-                fi
-            '''
         }
         success {
             echo "You are Greattt...You can visit https://$FQDN"
