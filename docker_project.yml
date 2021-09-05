@@ -60,11 +60,6 @@
         name: docker
         state: started
         enabled: yes
-    - name: install docker compose    
-      get_url:
-        url: https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-        dest: /usr/local/bin/docker-compose
-        mode: 755
 
 - name: Postgre Database configuration
   hosts: _ansible_postgresql
