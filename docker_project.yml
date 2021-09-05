@@ -193,7 +193,7 @@
         dest: "{{ container_path }}"
     - name: copy init-letsencrypt.sh
       copy:
-        src: "{{react_home}}/init-letsencrypt.sh"
+        src: "{{react_home}}/data/"
         dest: "{{ container_path }}"
     - name: remove {{ container_name }} container and {{ image_name }} image if exists
       shell: "docker ps -q --filter 'name={{ container_name }}' | grep -q . && docker stop {{ container_name }} && docker rm -fv {{ container_name }} && docker image rm -f {{ image_name }} || echo 'Not Found'"
@@ -214,7 +214,7 @@
         ports:
         - "80:80"
     - name: let's start encrypt
-      shell: "sh init-letsencrypt.sh"
+      shell: "sh '{{ container_path }}/data/nginx/init-letsencrypt.sh'"
     - name: deploy Docker Compose stack
       docker_compose:
         project_src: "{{ container_path }}"
