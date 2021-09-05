@@ -188,6 +188,10 @@
         dest: "{{ container_path }}"
     - name: copy init-letsencrypt.sh
       copy:
+        src: "{{react_home}}/init-letsencrypt.sh"
+        dest: "{{ container_path }}"
+    - name: copy app.conf files
+      copy:
         src: "{{react_home}}/data/"
         dest: "{{ container_path }}"
     - name: remove {{ container_name }} container and {{ image_name }} image if exists
@@ -201,15 +205,15 @@
           path: "{{ container_path }}"
         source: build
         state: present
-    - name: Launch nginx and react artifact container
-      docker_container:
-        name: "{{ artf_container_name }}"
-        image: "{{ artf_image_name }}"
-        state: started
-        ports:
-        - "80:80"
+    #- name: Launch nginx and react artifact container
+    #  docker_container:
+    #    name: "{{ artf_container_name }}"
+    #    image: "{{ artf_image_name }}"
+    #    state: started
+    #    ports:
+    #    - "80:80"
     - name: let's start encrypt
-      shell: "sh '{{ container_path }}/data/nginx/init-letsencrypt.sh'"
+      shell: "sh '{{ container_path }}/init-letsencrypt.sh' -y"
     - name: deploy Docker Compose stack
       docker_compose:
         project_src: "{{ container_path }}"
