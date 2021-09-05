@@ -59,6 +59,12 @@
         url: https://github.com/docker/compose/releases/download/1.27.3/docker-compose-Linux-x86_64
         dest: /usr/local/bin/docker-compose
         mode: 755
+    - name: install certain python modules for docker
+      pip:
+        name: "{{ item.name }}"
+        state: present
+      with_items:
+        - { name: docker-compose }`
 
 - name: Postgre Database configuration
   hosts: _ansible_postgresql
