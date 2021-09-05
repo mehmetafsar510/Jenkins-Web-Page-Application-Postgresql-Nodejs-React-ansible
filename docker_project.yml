@@ -44,6 +44,12 @@
     - name: Install docker sdk
       pip:
         name: docker
+    - name: install certain python modules for docker compose
+      pip:
+        name: "{{ item.name }}"
+        state: present
+      with_items:
+        - { name: docker-compose }
     - name: Add user ec2-user to docker group
       user:
         name: ec2-user
@@ -56,15 +62,9 @@
         enabled: yes
     - name: install docker compose    
       get_url:
-        url: https://github.com/docker/compose/releases/download/1.27.3/docker-compose-Linux-x86_64
+        url: https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
         dest: /usr/local/bin/docker-compose
         mode: 755
-    - name: install certain python modules for docker
-      pip:
-        name: "{{ item.name }}"
-        state: present
-      with_items:
-        - { name: docker-compose }`
 
 - name: Postgre Database configuration
   hosts: _ansible_postgresql
@@ -189,7 +189,11 @@
         dest: "{{ container_path }}"
     - name: copy Docker Compose files
       copy:
-        src: "{{react_home}}/docker-dns.yml"
+        src: "{{react_home}}/docker-compose.yml"
+        dest: "{{ container_path }}"
+    - name: copy init-letsencrypt.sh
+      copy:
+        src: "{{react_home}}/init-letsencrypt.sh"
         dest: "{{ container_path }}"
     - name: remove {{ container_name }} container and {{ image_name }} image if exists
       shell: "docker ps -q --filter 'name={{ container_name }}' | grep -q . && docker stop {{ container_name }} && docker rm -fv {{ container_name }} && docker image rm -f {{ image_name }} || echo 'Not Found'"
@@ -209,8 +213,10 @@
         state: started
         ports:
         - "80:80"
+    - name: let's start encrypt
+      shell: "sh init-letsencrypt.sh"
     - name: deploy Docker Compose stack
       docker_compose:
         project_src: "{{ container_path }}"
-        files: docker-dns.yml
+        files: docker-compose.yml
         state: present
