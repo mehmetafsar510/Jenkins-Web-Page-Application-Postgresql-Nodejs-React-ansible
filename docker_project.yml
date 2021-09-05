@@ -54,6 +54,11 @@
         name: docker
         state: started
         enabled: yes
+    - name: install docker compose    
+      get_url:
+      url: https://github.com/docker/compose/releases/download/1.27.3/docker-compose-Linux-x86_64
+      dest: /usr/local/bin/docker-compose
+      mode: 755
 
 - name: Postgre Database configuration
   hosts: _ansible_postgresql
@@ -176,6 +181,10 @@
       copy:
         src: "{{react_home}}/Dockerfile"
         dest: "{{ container_path }}"
+    - name: copy Docker Compose files
+      copy:
+        src: "{{react_home}}/docker-dns.yml"
+        dest: "{{ container_path }}"
     - name: remove {{ container_name }} container and {{ image_name }} image if exists
       shell: "docker ps -q --filter 'name={{ container_name }}' | grep -q . && docker stop {{ container_name }} && docker rm -fv {{ container_name }} && docker image rm -f {{ image_name }} || echo 'Not Found'"
     - name: remove {{ artf_container_name }} container and {{ artf_image_name }} image if exists
@@ -194,3 +203,8 @@
         state: started
         ports:
         - "80:80"
+    - name: deploy Docker Compose stack
+      docker_compose:
+        project_src: "{{ container_path }}"
+        files: docker-dns.yml
+        state: present

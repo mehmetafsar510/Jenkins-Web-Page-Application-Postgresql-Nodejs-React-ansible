@@ -101,19 +101,6 @@ pipeline{
                 }
             }
         }
-  
-        stage('Setting up  configuration with ansible') {
-            steps {
-                echo "Setting up  configuration with ansible"
-                sh "sed -i 's|{{key_pair}}|deneme.pem|g' ansible.cfg"
-                sh "sed -i 's|{{nodejs_dns_name}}|$NODEJS_INSTANCE_PUBLIC_DNS|g' todo-app-pern/client/.env"
-                sh "sed -i 's|{{postgresql_internal_private_dns}}|$POSTGRESQL_INSTANCE_PRİVATE_DNS|g' todo-app-pern/server/.env"
-                sh "sed -i 's|{{workspace}}|${WORKSPACE}|g' docker_project.yml"
-                sh "sudo ansible-playbook docker_project.yml"
-            }
-        }
-    
-
 
         stage('dns-record-control'){
             agent any
@@ -154,52 +141,15 @@ pipeline{
                 }                  
             }
         }
-
-        stage('Aws-Certificate-Manager'){
-            agent any
-            steps{
-                withAWS(credentials: 'mycredentials', region: 'us-east-1') {
-
-                    sh '''
-                        Acm=$(aws acm list-certificates --query CertificateSummaryList[].[CertificateArn,DomainName] --output text | grep $FQDN) || true
-                        if [ "$Acm" == '' ]
-                        then
-                            aws acm request-certificate --domain-name $FQDN --validation-method DNS --query CertificateArn --region ${AWS_REGION}
-                        
-                        fi
-                    '''
-                        
-                }                  
-            }
-        }
-
-        stage('ssl-tls-record-validate'){
-            agent any
-            steps{
-                withAWS(credentials: 'mycredentials', region: 'us-east-1') {
-                    script {
-                        env.SSL_CERT_ARN = sh(script:"aws acm list-certificates --query CertificateSummaryList[].[CertificateArn,DomainName]   --output text | grep $FQDN | cut -f1", returnStdout:true).trim()
-                        env.SSL_CERT_NAME = sh(script:"aws acm describe-certificate --certificate-arn $SSL_CERT_ARN --query Certificate.DomainValidationOptions --output text | tail -n 1 | cut -f2", returnStdout:true).trim()
-                        env.SSL_CERT_VALUE = sh(script:"aws acm describe-certificate --certificate-arn $SSL_CERT_ARN --query Certificate.DomainValidationOptions --output text | tail -n 1 | cut -f4", returnStdout:true).trim()   
-                    }
-
-                    sh "sed -i 's|{{SSL_CERT_NAME}}|$SSL_CERT_NAME|g' deletecertificate.json"
-                    sh "sed -i 's|{{SSL_CERT_VALUE}}|$SSL_CERT_VALUE|g' deletecertificate.json"
-
-                    sh '''
-                        SSLRecordSet=$(aws route53 list-resource-record-sets   --hosted-zone-id $ZONE_ID   --query ResourceRecordSets[] | grep -i $SSL_CERT_VALUE) || true
-                        if [ "$SSLRecordSet" != '' ]
-                        then
-                            aws route53 change-resource-record-sets --hosted-zone-id $ZONE_ID --change-batch file://deletecertificate.json
-                        
-                        fi
-                    '''
-
-                    sh "sed -i 's|{{SSL_CERT_NAME}}|$SSL_CERT_NAME|g' certificate.json"
-                    sh "sed -i 's|{{SSL_CERT_VALUE}}|$SSL_CERT_VALUE|g' certificate.json"
-                    sh "aws route53 change-resource-record-sets --hosted-zone-id $ZONE_ID --change-batch file://certificate.json"
-                                 
-                }                  
+  
+        stage('Setting up  configuration with ansible') {
+            steps {
+                echo "Setting up  configuration with ansible"
+                sh "sed -i 's|{{key_pair}}|deneme.pem|g' ansible.cfg"
+                sh "sed -i 's|{{nodejs_dns_name}}|$NODEJS_INSTANCE_PUBLIC_DNS|g' todo-app-pern/client/.env"
+                sh "sed -i 's|{{postgresql_internal_private_dns}}|$POSTGRESQL_INSTANCE_PRİVATE_DNS|g' todo-app-pern/server/.env"
+                sh "sed -i 's|{{workspace}}|${WORKSPACE}|g' docker_project.yml"
+                sh "sudo ansible-playbook docker_project.yml"
             }
         }
     
