@@ -207,7 +207,7 @@
   any_errors_fatal: true
   vars:
     react_home: {{workspace}}/react_files
-    container_path: /home/ec2-user/react
+    container_path: /home/ec2-user/
     container_name: mehmet_react
     image_name: mehmet/react
     artf_container_name: mehmet_react_artf
@@ -247,7 +247,7 @@
     - name: remove {{ artf_container_name }} container and {{ artf_image_name }} image if exists
       shell: "docker ps -q --filter 'name={{ artf_container_name }}' | grep -q . && docker stop {{ artf_container_name }} && docker rm -fv {{ artf_container_name }} && docker image rm -f {{ artf_image_name }} || echo 'Not Found'"
     - name: let's start encrypt
-      shell: "sh '{{ container_path }}/init-letsencrypt.sh' -y"
+      shell: "sh '{{ container_path }}/init-letsencrypt.sh'"
     - name: deploy Docker Compose stack
       docker_compose:
         project_src: "{{ container_path }}"
