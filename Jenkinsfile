@@ -73,7 +73,7 @@ pipeline{
                         if (ip.length() >= 7) {
                             echo "Nodejs Public Ip Address Found: $ip"
                             env.NODEJS_INSTANCE_PUBLIC_DNS = "$ip"
-                            sleep(10)
+                            sleep(15)
                             break
                         }
                     }
