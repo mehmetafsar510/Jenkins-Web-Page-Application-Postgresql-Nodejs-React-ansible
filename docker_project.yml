@@ -202,7 +202,7 @@
         - "80:80"
    
 - name:  Tls  Server configuration
-  hosts: _ansible_react
+  hosts: _ansible_tls
   gather_facts: No
   any_errors_fatal: true
   vars:
@@ -221,16 +221,28 @@
     #    owner: root
     #    group: root
     #    mode: '0755'
+    - name: Install Git
+      become: true
+      yum:
+        name: git
+        state: present
+    - name: Clone a github repository
+      become: true
+      git:
+        repo: https://github.com/wmnnd/nginx-certbot.git
+        dest: /home/ec2-user/
+        clone: yes
+        update: yes
     - name: copy Docker Compose files
       become: true
       copy:
         src: "{{react_home}}/docker-compose.yml"
-        dest: "{{ container_path }}"
+        dest: /home/ec2-user/nginx-certbot
     - name: copy init-letsencrypt.sh
       become: true
       copy:
         src: "{{react_home}}/init-letsencrypt.sh"
-        dest: "{{ container_path }}"
+        dest: /home/ec2-user/nginx-certbot
         owner: root
         group: root
         mode: '0755'
@@ -238,7 +250,7 @@
       become: true
       copy:
         src: "{{react_home}}/data/"
-        dest: "{{ container_path }}"
+        dest: /home/ec2-user/nginx-certbot
         owner: root
         group: root
         mode: '0755'
