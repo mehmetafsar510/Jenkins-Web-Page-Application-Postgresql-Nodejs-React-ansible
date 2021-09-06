@@ -95,7 +95,7 @@ pipeline{
                         if (ip.length() >= 7) {
                             echo "Postgresql Private Ip Address Found: $ip"
                             env.POSTGRESQL_INSTANCE_PRİVATE_DNS = "$ip"
-                            sleep(10)
+                            sleep(15)
                             break
                         }
                     }

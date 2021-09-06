@@ -213,14 +213,14 @@
     artf_container_name: mehmet_react_artf
     artf_image_name: mehmet/react_artf
   tasks:
-    - name: create build directory
-      become: true
-      file:
-        path: "{{ container_path }}"
-        state: directory
-        owner: root
-        group: root
-        mode: '0755'
+    #- name: create build directory
+    #  become: true
+    #  file:
+    #    path: "{{ container_path }}"
+    #    state: directory
+    #    owner: root
+    #    group: root
+    #    mode: '0755'
     - name: copy Docker Compose files
       become: true
       copy:
