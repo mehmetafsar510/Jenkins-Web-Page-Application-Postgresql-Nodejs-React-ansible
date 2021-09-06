@@ -202,25 +202,25 @@
         - "80:80"
    
 - name:  Tls  Server configuration
-  hosts: _ansible_tls
+  hosts: _ansible_react
   gather_facts: No
   any_errors_fatal: true
   vars:
     react_home: {{workspace}}/react_files
-    container_path: /home/ec2-user/cert-ssl
+    container_path: /home/ec2-user/react
     container_name: mehmet_react
     image_name: mehmet/react
     artf_container_name: mehmet_react_artf
     artf_image_name: mehmet/react_artf
   tasks:
-    - name: create build directory
-      become: true
-      file:
-        path: "{{ container_path }}"
-        state: directory
-        owner: root
-        group: root
-        mode: '0755'
+    #- name: create build directory
+    #  become: true
+    #  file:
+    #    path: "{{ container_path }}"
+    #    state: directory
+    #    owner: root
+    #    group: root
+    #    mode: '0755'
     - name: copy Docker Compose files
       become: true
       copy:
@@ -242,10 +242,10 @@
         owner: root
         group: root
         mode: '0755'
-    - name: remove {{ container_name }} container and {{ image_name }} image if exists
-      shell: "docker ps -q --filter 'name={{ container_name }}' | grep -q . && docker stop {{ container_name }} && docker rm -fv {{ container_name }} && docker image rm -f {{ image_name }} || echo 'Not Found'"
-    - name: remove {{ artf_container_name }} container and {{ artf_image_name }} image if exists
-      shell: "docker ps -q --filter 'name={{ artf_container_name }}' | grep -q . && docker stop {{ artf_container_name }} && docker rm -fv {{ artf_container_name }} && docker image rm -f {{ artf_image_name }} || echo 'Not Found'"
+    #- name: remove {{ container_name }} container and {{ image_name }} image if exists
+    #  shell: "docker ps -q --filter 'name={{ container_name }}' | grep -q . && docker stop {{ container_name }} && docker rm -fv {{ container_name }} && docker image rm -f {{ image_name }} || echo 'Not Found'"
+    #- name: remove {{ artf_container_name }} container and {{ artf_image_name }} image if exists
+    #  shell: "docker ps -q --filter 'name={{ artf_container_name }}' | grep -q . && docker stop {{ artf_container_name }} && docker rm -fv {{ artf_container_name }} && docker image rm -f {{ artf_image_name }} || echo 'Not Found'"
     #- name: let's start encrypt
     #  shell: "cd {{ container_path }} | ./init-letsencrypt.sh"
     #- name: deploy Docker Compose stack
