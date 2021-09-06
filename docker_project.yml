@@ -213,14 +213,6 @@
     artf_container_name: mehmet_react_artf
     artf_image_name: mehmet/react_artf
   tasks:
-    #- name: create build directory
-    #  become: true
-    #  file:
-    #    path: "{{ container_path }}"
-    #    state: directory
-    #    owner: root
-    #    group: root
-    #    mode: '0755'
     - name: Install Git
       become: true
       yum:
@@ -230,7 +222,7 @@
       become: true
       git:
         repo: https://github.com/wmnnd/nginx-certbot.git
-        dest: /home/ec2-user/
+        dest: /home/ec2-user/nginx-certbot
         clone: yes
         update: yes
     - name: copy Docker Compose files
