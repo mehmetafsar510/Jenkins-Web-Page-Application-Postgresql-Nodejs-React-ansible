@@ -202,7 +202,7 @@
         - "80:80"
    
 - name:  Tls  Server configuration
-  hosts: _ansible_tls
+  hosts: _ansible_react
   gather_facts: No
   any_errors_fatal: true
   vars:
@@ -213,28 +213,31 @@
     artf_container_name: mehmet_react_artf
     artf_image_name: mehmet/react_artf
   tasks:
-    - name: Install Git
-      become: true
-      yum:
-        name: git
-        state: present
-    - name: Clone a github repository
-      become: true
-      git:
-        repo: https://github.com/wmnnd/nginx-certbot.git
-        dest: /home/ec2-user/nginx-certbot
-        clone: yes
-        update: yes
+    #- name: Install Git
+    #  become: true
+    #  yum:
+    #    name: git
+    #    state: present
+    #- name: Clone a github repository
+    #  become: true
+    #  git:
+    #    repo: https://github.com/wmnnd/nginx-certbot.git
+    #    dest: /home/ec2-user/nginx-certbot
+    #    clone: yes
+    #    update: yes
+    #    owner: root
+    #    group: root
+    #    mode: '0755'
     - name: copy Docker Compose files
       become: true
       copy:
         src: "{{react_home}}/docker-compose.yml"
-        dest: /home/ec2-user/nginx-certbot
+        dest: "{{ container_path }}"
     - name: copy init-letsencrypt.sh
       become: true
       copy:
         src: "{{react_home}}/init-letsencrypt.sh"
-        dest: /home/ec2-user/nginx-certbot
+        dest: "{{ container_path }}"
         owner: root
         group: root
         mode: '0755'
@@ -242,7 +245,7 @@
       become: true
       copy:
         src: "{{react_home}}/data/"
-        dest: /home/ec2-user/nginx-certbot
+        dest: "{{ container_path }}"
         owner: root
         group: root
         mode: '0755'
