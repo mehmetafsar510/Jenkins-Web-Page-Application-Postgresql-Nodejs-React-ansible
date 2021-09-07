@@ -5,7 +5,7 @@ if ! [ -x "$(command -v docker-compose)" ]; then
   exit 1
 fi
 
-domains=(clarus.mehmetafsar.com)
+domains=(clar.mehmetafsar.com)
 rsa_key_size=4096
 data_path="./data/certbot"
 email="drmehmet51@gmail.com" # Adding a valid address is strongly recommended
@@ -73,6 +73,7 @@ docker-compose run --rm --entrypoint "\
     $domain_args \
     --rsa-key-size $rsa_key_size \
     --agree-tos \
+    --noninteractive \
     --force-renewal" certbot
 echo
 

@@ -4,8 +4,7 @@ pipeline{
         PATH="/usr/local/bin/:${env.PATH}"
         CFN_KEYPAIR="the-doctor"
         AWS_REGION = "us-east-1"
-        FILE = 'secret.txt'
-        FQDN = "clarusshop.mehmetafsar.com"
+        FQDN = "clar.mehmetafsar.com"
         DOMAIN_NAME = "mehmetafsar.com"
         GIT_FOLDER = sh(script:'echo ${GIT_URL} | sed "s/.*\\///;s/.git$//"', returnStdout:true).trim()
     }
