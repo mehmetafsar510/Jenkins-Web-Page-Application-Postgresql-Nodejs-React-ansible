@@ -219,15 +219,12 @@
         name: git
         state: present
     - name: Clone a github repository
-      become: true
       git:
         repo: https://github.com/wmnnd/nginx-certbot.git
         dest: /home/ec2-user/nginx-certbot
         clone: yes
         update: yes
-        owner: ec2-user
-        group: ec2-user
-        mode: '0775'
+        
     - name: copy Docker Compose files
       become: true
       copy:
