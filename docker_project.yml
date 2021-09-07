@@ -202,7 +202,7 @@
         - "80:80"
    
 - name:  Tls  Server configuration
-  hosts: _ansible_react
+  hosts: _ansible_tls
   gather_facts: No
   any_errors_fatal: true
   vars:
@@ -225,9 +225,9 @@
     #    dest: /home/ec2-user/nginx-certbot
     #    clone: yes
     #    update: yes
-    #    owner: root
-    #    group: root
-    #    mode: '0755'
+    #    owner: ec2-user
+    #    group: ec2-user
+    #    mode: '0775'
     - name: copy Docker Compose files
       become: true
       copy:
@@ -238,17 +238,17 @@
       copy:
         src: "{{react_home}}/init-letsencrypt.sh"
         dest: "{{ container_path }}"
-        owner: root
-        group: root
-        mode: '0755'
+        owner: ec2-user
+        group: ec2-user
+        mode: '0775'
     - name: copy app.conf files
       become: true
       copy:
         src: "{{react_home}}/data/"
         dest: "{{ container_path }}"
-        owner: root
-        group: root
-        mode: '0755'
+        owner: ec2-user
+        group: ec2-user
+        mode: '0775'
     #- name: remove {{ container_name }} container and {{ image_name }} image if exists
     #  shell: "docker ps -q --filter 'name={{ container_name }}' | grep -q . && docker stop {{ container_name }} && docker rm -fv {{ container_name }} && docker image rm -f {{ image_name }} || echo 'Not Found'"
     #- name: remove {{ artf_container_name }} container and {{ artf_image_name }} image if exists
