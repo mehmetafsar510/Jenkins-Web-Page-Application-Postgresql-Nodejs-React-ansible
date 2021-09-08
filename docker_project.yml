@@ -109,7 +109,10 @@
           POSTGRES_PASSWORD: "Pp12345678" #"{{ password }}" #"{{ pwhash | password_hash ('sha512') }}"  
         volumes:
           - /custom/mount:/var/lib/postgresql/data
-      register: docker_info
+      register: container_info
+    - name: Print the container info
+      debug:
+        msj: "{{container_info}}"
 - name: Nodejs Server configuration
   hosts: _ansible_nodejs
   become: true
@@ -153,6 +156,7 @@
         state: started
         ports:
         - "5000:5000"
+
 - name: React UI Server configuration
   hosts: _ansible_react
   become: true
@@ -165,6 +169,7 @@
     image_name: mehmet/react
     artf_container_name: mehmet_react_artf
     artf_image_name: mehmet/react_artf
+    nginx_certbot_path: /home/ec2-user/nginx-certbot
   tasks:
     - name: create build directory
       file:
@@ -182,6 +187,34 @@
       copy:
         src: "{{react_home}}/Dockerfile"
         dest: "{{ container_path }}"
+    - name: Install Git
+      yum:
+        name: git
+        state: present
+    - name: Clone a github repository
+      git:
+        repo: https://github.com/wmnnd/nginx-certbot.git
+        dest: "{{ nginx_certbot_path }}"
+        clone: yes
+        update: yes      
+    - name: copy Docker Compose files
+      copy:
+        src: "{{react_home}}/docker-compose.yml"
+        dest: "{{ nginx_certbot_path }}"
+    - name: copy init-letsencrypt.sh
+      copy:
+        src: "{{react_home}}/init-letsencrypt.sh"
+        dest: "{{ nginx_certbot_path }}"
+        owner: ec2-user
+        group: ec2-user
+        mode: '0775'
+    - name: copy app.conf files
+      copy:
+        src: "{{react_home}}/data/"
+        dest: "{{ nginx_certbot_path }}"
+        owner: ec2-user
+        group: ec2-user
+        mode: '0775'
     - name: remove {{ container_name }} container and {{ image_name }} image if exists
       shell: "docker ps -q --filter 'name={{ container_name }}' | grep -q . && docker stop {{ container_name }} && docker rm -fv {{ container_name }} && docker image rm -f {{ image_name }} || echo 'Not Found'"
     - name: remove {{ artf_container_name }} container and {{ artf_image_name }} image if exists
@@ -200,60 +233,12 @@
         state: started
         ports:
         - "80:80"
-   
-- name:  Tls  Server configuration
-  hosts: _ansible_react
-  gather_facts: No
-  any_errors_fatal: true
-  vars:
-    react_home: {{workspace}}/react_files
-    container_path: /home/ec2-user/react
-    container_name: mehmet_react
-    image_name: mehmet/react
-    artf_container_name: mehmet_react_artf
-    artf_image_name: mehmet/react_artf
-  tasks:
-    - name: Install Git
-      become: true
-      yum:
-        name: git
-        state: present
-    - name: Clone a github repository
-      git:
-        repo: https://github.com/wmnnd/nginx-certbot.git
-        dest: /home/ec2-user/nginx-certbot
-        clone: yes
-        update: yes
-        
-    - name: copy Docker Compose files
-      become: true
-      copy:
-        src: "{{react_home}}/docker-compose.yml"
-        dest: /home/ec2-user/nginx-certbot
-    - name: copy init-letsencrypt.sh
-      become: true
-      copy:
-        src: "{{react_home}}/init-letsencrypt.sh"
-        dest: /home/ec2-user/nginx-certbot
-        owner: ec2-user
-        group: ec2-user
-        mode: '0775'
-    - name: copy app.conf files
-      become: true
-      copy:
-        src: "{{react_home}}/data/"
-        dest: /home/ec2-user/nginx-certbot
-        owner: ec2-user
-        group: ec2-user
-        mode: '0775'
-    #- name: remove {{ container_name }} container and {{ image_name }} image if exists
-    #  shell: "docker ps -q --filter 'name={{ container_name }}' | grep -q . && docker stop {{ container_name }} && docker rm -fv {{ container_name }} && docker image rm -f {{ image_name }} || echo 'Not Found'"
-    #- name: remove {{ artf_container_name }} container and {{ artf_image_name }} image if exists
-    #  shell: "docker ps -q --filter 'name={{ artf_container_name }}' | grep -q . && docker stop {{ artf_container_name }} && docker rm -fv {{ artf_container_name }} && docker image rm -f {{ artf_image_name }} || echo 'Not Found'"
     #- name: let's start encrypt
-    #  shell: "cd {{ container_path }} | ./init-letsencrypt.sh"
+    #  become: false
+    #  shell: "cd {{ nginx_certbot_path }} && ./init-letsencrypt.sh"
     #- name: deploy Docker Compose stack
+    #  become: false
     #  docker_compose:
-    #    project_src: "{{ container_path }}"
+    #    project_src: "{{ nginx_certbot_path }}"
     #    files: docker-compose.yml
     #    state: present
