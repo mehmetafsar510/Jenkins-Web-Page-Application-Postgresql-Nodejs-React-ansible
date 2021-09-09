@@ -109,10 +109,8 @@
           POSTGRES_PASSWORD: "Pp12345678" #"{{ password }}" #"{{ pwhash | password_hash ('sha512') }}"  
         volumes:
           - /custom/mount:/var/lib/postgresql/data
-      register: container_info
-    - name: Print the container info
-      debug:
-        msj: "{{container_info}}"
+      register: docker_info
+  
 - name: Nodejs Server configuration
   hosts: _ansible_nodejs
   become: true
