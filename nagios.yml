@@ -1,0 +1,134 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: |
+  CloudFormation Template for Miliseconds Converter Website on EC2.
+  This template deploys Miliseconds Converter Static Website on Amazon Linux 2
+  (ami-09d95fab7fff3776c) EC2 Instance with custom security group 
+  allowing http connections on port 80. Miliseconds Converter Static Website 
+  is downloaded from Github repository, then deployed on Python Flask Web Application.
+  Application Load Balancer with Auto Scaling Group of Amazon Linux 2 EC2 Instances within default VPC. 
+Parameters:
+  NagiosPassword:
+    AllowedPattern: '^[A-Za-z][a-zA-Z0-9@%$_-]{8,41}$'
+    ConstraintDescription: must contain only alphanumeric characters.
+    Description: The WordPress database admin account password
+    MaxLength: '41'
+    MinLength: '8'
+    Default: 'nagiosadmin'
+    Type: String
+  Email:
+    AllowedPattern: '^[A-Za-z][a-zA-Z0-9@%$_-]{8,41}$'
+    ConstraintDescription: must contain only alphanumeric characters.
+    Description: The WordPress database admin account password
+    MaxLength: '41'
+    MinLength: '8'
+    Default: 'drmehmet510@gmail.com'
+    Type: String 
+  InstanceType:
+    Description: WebServer EC2 instance type
+    Type: String
+    Default: t2.micro
+    AllowedValues:
+      - t2.small
+      - t2.micro
+      - m1.small
+      - m1.medium
+      - m1.large
+    ConstraintDescription: must be a valid EC2 instance type.
+  KeyName:
+    Description: The EC2 Key Pair to allow SSH access to the instances
+    Type: AWS::EC2::KeyPair::KeyName
+
+Mappings:
+  RegionImageMap:
+    us-east-1:
+      AMI: ami-0c94855ba95c71c99
+    us-east-2:
+      AMI: ami-0603cbe34fd08cb81
+    us-west-1:
+      AMI: ami-0e65ed16c9bf1abc7
+    us-west-2:
+      AMI: ami-0841edc20334f9287
+    eu-west-1:
+      AMI: ami-08a2aed6e0a6f9c7d
+Resources:
+  NagiosSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: 'Nagios Access Security Group'
+      GroupDescription: 'Nagios Access Security Group'
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '443'
+          ToPort: '443'
+          CidrIp: '0.0.0.0/0'
+        - IpProtocol: tcp
+          FromPort: '80'
+          ToPort: '80'
+          CidrIp: '0.0.0.0/0'
+        - IpProtocol: tcp
+          FromPort: '22'
+          ToPort: '22'
+          CidrIp: '0.0.0.0/0'
+        - IpProtocol: tcp
+          FromPort: '5666'
+          ToPort: '5666'
+          CidrIp: '0.0.0.0/0'
+        - IpProtocol: icmp
+          FromPort: '-1'
+          ToPort: '-1'
+          CidrIp: '0.0.0.0/0'
+      Tags:
+        - Key: Name
+          Value: RulesInbound
+  NagiosXI:
+    Type: AWS::EC2::Instance
+    Properties:
+      Tags:
+        - Key: Name
+          Value: nagiosxi-cf
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          #disable selinux
+          sudo sed -i 's/enforcing/disabled/g' /etc/selinux/config
+          #config hostname
+          hostname nagios
+          echo "nagios" >/etc/hostname
+          yum install httpd php gcc glibc glibc-common gd gd-devel -y
+          yum install wget -y
+          adduser -m nagios
+          echo ${NagiosPassword} | passwd nagios --stdin
+          groupadd nagcmd
+          usermod -a -G nagcmd nagios
+          usermod -a -G nagcmd apache
+          mkdir -p /home/ec2-user/nagios && cd /home/ec2-user/nagios
+          wget http://prdownloads.sourceforge.net/sourceforge/nagios/nagios-4.0.8.tar.gz
+          wget http://nagios-plugins.org/download/nagios-plugins-2.0.3.tar.gz
+          tar zxvf nagios-4.0.8.tar.gz
+          cd /home/ec2-user/nagios/nagios-4.0.8 &&  ./configure --with-command-group=nagcmd
+          make all
+          make install
+          make install-init
+          make install-config
+          make install-commandmode
+          sed -i 's|nagios@localhost|${Email}|g' /usr/local/nagios/etc/objects/contacts.cfg
+          make install-webconf
+          htpasswd -b -c /usr/local/nagios/etc/htpasswd.users nagiosadmin ${NagiosPassword}
+          service httpd restart
+          cd /home/ec2-user/nagios && tar zxvf nagios-plugins-2.0.3.tar.gz 
+          cd /home/ec2-user/nagios/nagios-plugins-2.0.3 && ./configure --with-nagios-user=nagios --with-nagios-group=nagios
+          make && make install
+          chkconfig --add nagios
+          chkconfig nagios on
+          service nagios start
+
+      KeyName: !Ref KeyName
+      ImageId: ami-0c94855ba95c71c99
+      InstanceType: !Ref InstanceType
+      SecurityGroupIds:
+        - !GetAtt NagiosSecurityGroup.GroupId
+ 
+Outputs:
+  IPNagiosXI:
+    Description: Nagios XI IP
+    Value: !Join [ "", [ 'http://',!GetAtt NagiosXI.PublicIp, '/nagios/' ]]
