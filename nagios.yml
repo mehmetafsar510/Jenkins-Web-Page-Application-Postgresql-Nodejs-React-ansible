@@ -47,8 +47,8 @@ Resources:
   NagiosServerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupName: 'Nagios Access Security Group'
-      GroupDescription: 'Nagios Access Security Group'
+      GroupName: 'Nagios Server Access Security Group'
+      GroupDescription: 'Nagios Server Access Security Group'
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: '443'
@@ -77,11 +77,40 @@ Resources:
       Tags:
         - Key: Name
           Value: Server RulesInbound
-  NagiosHostSecurityGroup:
+  NagiosHostRedhatSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupName: 'Nagios Host Access Security Group'
-      GroupDescription: 'Nagios Host  Access Security Group'
+      GroupName: 'Nagios Host Redhat Access Security Group'
+      GroupDescription: 'Nagios Host redhat Access Security Group'
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '443'
+          ToPort: '443'
+          CidrIp: '0.0.0.0/0'
+        - IpProtocol: tcp
+          FromPort: '80'
+          ToPort: '80'
+          CidrIp: '0.0.0.0/0'
+        - IpProtocol: tcp
+          FromPort: '22'
+          ToPort: '22'
+          CidrIp: '0.0.0.0/0'
+        - IpProtocol: tcp
+          FromPort: '5666'
+          ToPort: '5666'
+          CidrIp: '0.0.0.0/0'
+        - IpProtocol: icmp
+          FromPort: '-1'
+          ToPort: '-1'
+          CidrIp: '0.0.0.0/0'
+      Tags:
+        - Key: Name
+          Value: Server RulesInbound
+  NagiosHostUbuntuSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: 'Nagios Host Ubuntu Access Security Group'
+      GroupDescription: 'Nagios Host Ubuntu  Access Security Group'
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: '443'
@@ -198,20 +227,35 @@ Resources:
 
               cd /usr/local/nagios/etc/objects/
               cp localhost.cfg redhat.cfg
+              cp localhost.cfg ubuntu.cfg
               cp windows.cfg windows10.cfg
+
+              echo $(route -n) > routerip.txt
+              ROUTERIP=$(cat routerip.txt | awk '{print $14}')
+
+              sed -i "s/linksys-srw224p/router/g" redhat.cfg
+              sed -i "s/192.168.1.253/${ROUTERIP}/g" switch.cfg
 
               sed -i "s/localhost/redhat/g" redhat.cfg
               sed -i "s/127.0.0.1/${REDHAT}/g" redhat.cfg
               sed -i '45,50d' redhat.cfg
+
+              sed -i "s/localhost/ubuntu/g" ubuntu.cfg
+              sed -i "s/127.0.0.1/${UBUNTU}/g" ubuntu.cfg
+              sed -i '45,50d' ubuntu.cfg
               
               sed -i "s/winserver/windows10/g" windows10.cfg
               sed -i "s/192.168.1.2/${WIN}/g" windows10.cfg
+              sed -i "s/Explorer.exe/explorer.exe/g" windows10.cfg
 
               sed -i '36icfg_file=/usr/local/nagios/etc/objects/redhat.cfg' /usr/local/nagios/etc/nagios.cfg
+              sed -i '37icfg_file=/usr/local/nagios/etc/objects/ubuntu.cfg' /usr/local/nagios/etc/nagios.cfg
               sed -i '39icfg_file=/usr/local/nagios/etc/objects/windows10.cfg' /usr/local/nagios/etc/nagios.cfg
+              sed -i '42icfg_file=/usr/local/nagios/etc/objects/switch.cfg' /usr/local/nagios/etc/nagios.cfg
               service nagios restart
             - REDHAT: !GetAtt NagiosHostRedhat.PublicIp
               WIN: !GetAtt NagiosHostWindows.PublicIp
+              UBUNTU: !GetAtt NagiosHostUbuntu.PublicIp
 
       KeyName: !Ref KeyName
       ImageId: !FindInMap 
@@ -235,7 +279,7 @@ Resources:
     Properties:
       Tags:
         - Key: Name
-          Value: nagios-host-linux
+          Value: nagios-host-redhat
       UserData:
         Fn::Base64: !Sub |
           #!/bin/bash
@@ -250,7 +294,26 @@ Resources:
       ImageId: ami-0b0af3577fe5e3532
       InstanceType: !Ref InstanceType
       SecurityGroupIds:
-        - !GetAtt NagiosHostSecurityGroup.GroupId
+        - !GetAtt NagiosHostRedhatSecurityGroup.GroupId
+  NagiosHostUbuntu:
+    Type: AWS::EC2::Instance
+    Properties:
+      Tags:
+        - Key: Name
+          Value: nagios-host-ubuntu
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          apt-get update && apt-get upgrade -y
+          apt-get install nagios-nrpe-plugin -y
+          chkconfig --level 2345 nrpe on
+          sed -i '/allowed_hosts=127.0.0.1,::1/s/$/,${NAGIOSSERVERIP}/' /etc/nagios/nrpe.cfg
+          systemctl ststus nagios-nrpe-server.service
+      KeyName: !Ref KeyName  #netstat -an |grep 5666
+      ImageId: ami-0747bdcabd34c712a
+      InstanceType: !Ref InstanceType
+      SecurityGroupIds:
+        - !GetAtt NagiosHostUbuntuSecurityGroup.GroupId
   NagiosHostWindows:
     Type: AWS::EC2::Instance
     Properties:
