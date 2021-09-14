@@ -188,6 +188,7 @@ Resources:
               #config hostname
               hostname nagios
               echo "nagios" >/etc/hostname
+              yum update -y
               amazon-linux-extras install epel -y
               yum install httpd php gcc glibc glibc-common gd gd-devel openssl-devel make net-snmp -y
               systemctl start httpd
@@ -199,22 +200,25 @@ Resources:
               usermod -a -G nagcmd nagios
               usermod -a -G nagcmd apache
               mkdir -p /home/ec2-user/nagios && cd /home/ec2-user/nagios
-              wget http://prdownloads.sourceforge.net/sourceforge/nagios/nagios-4.0.8.tar.gz
-              wget http://nagios-plugins.org/download/nagios-plugins-2.0.3.tar.gz
-              tar zxvf nagios-4.0.8.tar.gz
-              cd /home/ec2-user/nagios/nagios-4.0.8 &&  ./configure --with-command-group=nagcmd
+              wget http://prdownloads.sourceforge.net/sourceforge/nagios/nagios-4.4.6.tar.gz
+              wget http://nagios-plugins.org/download/nagios-plugins-2.3.3.tar.gz
+              tar zxvf nagios-4.4.6.tar.gz
+              cd /home/ec2-user/nagios/nagios-4.4.6 &&  ./configure --with-command-group=nagcmd
               make all
               make install
               make install-init
               make install-config
               make install-commandmode
+              cp -R contrib/eventhandlers/ /usr/local/nagios/libexec/
+              chown -R nagios:nagios /usr/local/nagios/libexec/eventhandlers
               sed -i 's|nagios@localhost|${Email}|g' /usr/local/nagios/etc/objects/contacts.cfg
               make install-webconf
               htpasswd -b -c /usr/local/nagios/etc/htpasswd.users nagiosadmin ${NagiosPassword}
               service httpd restart
-              cd /home/ec2-user/nagios && tar zxvf nagios-plugins-2.0.3.tar.gz 
-              cd /home/ec2-user/nagios/nagios-plugins-2.0.3 && ./configure --with-nagios-user=nagios --with-nagios-group=nagios
+              cd /home/ec2-user/nagios && tar zxvf nagios-plugins-2.3.3.tar.gz 
+              cd /home/ec2-user/nagios/nagios-plugins-2.3.3 && ./configure --with-nagios-user=nagios --with-nagios-group=nagios
               make && make install
+              yum install perl-Net-SNMP -y
               chkconfig --add nagios
               chkconfig nagios on
               service nagios start
@@ -233,8 +237,11 @@ Resources:
               echo $(route -n) > routerip.txt
               ROUTERIP=$(cat routerip.txt | awk '{print $14}')
 
-              sed -i "s/linksys-srw224p/router/g" redhat.cfg
-              sed -i "s/192.168.1.253/${ROUTERIP}/g" switch.cfg
+              sed -i "s/linksys-srw224p/router/g" switch.cfg
+              sed -i "s/192.168.1.253/$ROUTERIP/g" switch.cfg
+              sed -i "s/public/rocommunity public ${NAGIOSSERVERIP}/g" /etc/snmp/snmpd.conf
+              service snmpd restart
+              chkconfig snmpd on
 
               sed -i "s/localhost/redhat/g" redhat.cfg
               sed -i "s/127.0.0.1/${REDHAT}/g" redhat.cfg
@@ -327,6 +334,6 @@ Resources:
         - !GetAtt NagiosWinHostSecurityGroup.GroupId
  
 Outputs:
-  IPNagiosXI:
+  IPNagiosCore:
     Description: Nagios Server IP
     Value: !Join [ "", [ 'http://',!GetAtt NagiosServer.PublicIp, '/nagios/' ]]
