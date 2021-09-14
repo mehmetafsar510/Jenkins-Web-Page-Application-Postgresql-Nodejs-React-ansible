@@ -94,8 +94,6 @@ Resources:
           yum update
           yum install epel-release -y
           subscription-manager repos --enable codeready-builder-for-rhel-8-x86_64-rpms
-          yum install nagiosxi -y
-          yum update nagiosxi
           yum install ncpa -y
 
           # configure awscli
