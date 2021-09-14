@@ -79,7 +79,7 @@ Resources:
     Properties:
       Tags:
         - Key: Name
-          Value: nagios-server
+          Value: NagiosXI
       UserData:
         Fn::Base64: !Sub |
           #!/bin/bash
@@ -89,28 +89,15 @@ Resources:
           hostname nagios
           echo "nagios" >/etc/hostname
           yum update -y
-          yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
-          rpm -Uvh https://repo.nagios.com/nagios/8/nagios-repo-8-1.el8.noarch.rpm
-          yum update
-          yum install epel-release -y
-          subscription-manager repos --enable codeready-builder-for-rhel-8-x86_64-rpms
-          yum install ncpa -y
-
-          # configure awscli
-          yum install -y awscli
-          /usr/bin/easy_install --script-dir /opt/aws/bin https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz
-          cp -v /usr/lib/python2*/site-packages/aws_cfn_bootstrap*/init/redhat/cfn-hup /etc/init.d
-          chmod +x /etc/init.d/cfn-hup
-          #installing nagionxi
+          yum install httpd php php-cli gcc gcc++  glibc glibc-common gd gd-devel net-snmp openssl-devel wget unzip -y
           cd /tmp/ 
-          yum install -y wget
           wget http://assets.nagios.com/downloads/nagiosxi/xi-latest.tar.gz 
           tar -zxf xi-latest.tar.gz
-          cd /tmp/nagiosxi/ &
+          cd /tmp/nagiosxi/
           ./fullinstall -n
 
       KeyName: !Ref KeyName
-      ImageId: ami-0b0af3577fe5e3532
+      ImageId: ami-001986d37ece5b4ab #ami-0001378efdafd5401
       InstanceType: !Ref InstanceType
       SecurityGroupIds:
         - !GetAtt NagiosServerSecurityGroup.GroupId
@@ -119,4 +106,4 @@ Resources:
 Outputs:
   IPNagiosXI:
     Description: Nagios XI IP
-    Value: !Join [ "", [ 'http://',!GetAtt NagiosServer.PublicIp, '/nagios/' ]]
+    Value: !Join [ "", [ 'http://',!GetAtt NagiosServer.PublicIp, '/nagiosxi/' ]]
