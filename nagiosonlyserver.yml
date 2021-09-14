@@ -73,35 +73,6 @@ Resources:
       Tags:
         - Key: Name
           Value: Server RulesInbound
-  NagiosHostSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupName: 'Nagios Host Access Security Group'
-      GroupDescription: 'Nagios Host  Access Security Group'
-      SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: '443'
-          ToPort: '443'
-          CidrIp: '0.0.0.0/0'
-        - IpProtocol: tcp
-          FromPort: '80'
-          ToPort: '80'
-          CidrIp: '0.0.0.0/0'
-        - IpProtocol: tcp
-          FromPort: '22'
-          ToPort: '22'
-          CidrIp: '0.0.0.0/0'
-        - IpProtocol: tcp
-          FromPort: '5666'
-          ToPort: '5666'
-          CidrIp: '0.0.0.0/0'
-        - IpProtocol: icmp
-          FromPort: '-1'
-          ToPort: '-1'
-          CidrIp: '0.0.0.0/0'
-      Tags:
-        - Key: Name
-          Value: Server RulesInbound
 
   NagiosServer:
     Type: AWS::EC2::Instance
@@ -117,82 +88,35 @@ Resources:
           #config hostname
           hostname nagios
           echo "nagios" >/etc/hostname
-          amazon-linux-extras install epel -y
-          yum install httpd php gcc glibc glibc-common gd gd-devel openssl-devel make net-snmp -y
-          systemctl start httpd
-          systemctl enable httpd 
-          yum install wget -y
-          adduser -m nagios
-          echo ${NagiosPassword} | passwd nagios --stdin
-          groupadd nagcmd
-          usermod -a -G nagcmd nagios
-          usermod -a -G nagcmd apache
-          mkdir -p /home/ec2-user/nagios && cd /home/ec2-user/nagios
-          wget http://prdownloads.sourceforge.net/sourceforge/nagios/nagios-4.0.8.tar.gz
-          wget http://nagios-plugins.org/download/nagios-plugins-2.0.3.tar.gz
-          tar zxvf nagios-4.0.8.tar.gz
-          cd /home/ec2-user/nagios/nagios-4.0.8 &&  ./configure --with-command-group=nagcmd
-          make all
-          make install
-          make install-init
-          make install-config
-          make install-commandmode
-          sed -i 's|nagios@localhost|${Email}|g' /usr/local/nagios/etc/objects/contacts.cfg
-          make install-webconf
-          htpasswd -b -c /usr/local/nagios/etc/htpasswd.users nagiosadmin ${NagiosPassword}
-          service httpd restart
-          cd /home/ec2-user/nagios && tar zxvf nagios-plugins-2.0.3.tar.gz 
-          cd /home/ec2-user/nagios/nagios-plugins-2.0.3 && ./configure --with-nagios-user=nagios --with-nagios-group=nagios
-          make && make install
-          chkconfig --add nagios
-          chkconfig nagios on
-          service nagios start
-          #Nrpe-check
-          cd /home/ec2-user/nagios
-          wget https://github.com/NagiosEnterprises/nrpe/releases/download/nrpe-4.0.2/nrpe-4.0.2.tar.gz
-          tar xzf nrpe-4.0.2.tar.gz && cd /home/ec2-user/nagios/nrpe-4.0.2 && ./configure
-          make all && make install-plugin
-          sudo cat >>/usr/local/nagios/etc/objects/commands.cfg<<EOF
-          #########################################################
-          #NRPE CHECK
-          #######################################################
-          # 'check_nrpe' command definition
-          define command{
-          command_name check_nrpe
-          command_line $USER1$/check_nrpe -H $HOSTADDRESS$ -c $ARG1$
-                  }
-          EOF
+          yum update -y
+          yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
+          rpm -Uvh https://repo.nagios.com/nagios/8/nagios-repo-8-1.el8.noarch.rpm
+          yum update
+          yum install epel-release -y
+          subscription-manager repos --enable codeready-builder-for-rhel-8-x86_64-rpms
+          yum install nagiosxi -y
+          yum update nagiosxi
+          yum install ncpa -y
+
+          # configure awscli
+          yum install -y awscli
+          /usr/bin/easy_install --script-dir /opt/aws/bin https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz
+          cp -v /usr/lib/python2*/site-packages/aws_cfn_bootstrap*/init/redhat/cfn-hup /etc/init.d
+          chmod +x /etc/init.d/cfn-hup
+          #installing nagionxi
+          cd /tmp/ 
+          yum install -y wget
+          wget http://assets.nagios.com/downloads/nagiosxi/xi-latest.tar.gz 
+          tar -zxf xi-latest.tar.gz
+          cd /tmp/nagiosxi/ &
+          ./fullinstall -n
 
       KeyName: !Ref KeyName
-      ImageId: ami-0c94855ba95c71c99
+      ImageId: ami-0b0af3577fe5e3532
       InstanceType: !Ref InstanceType
       SecurityGroupIds:
         - !GetAtt NagiosServerSecurityGroup.GroupId
   
-  NagiosHostRedhat:
-    Type: AWS::EC2::Instance
-    Properties:
-      Tags:
-        - Key: Name
-          Value: nagios-host-linux
-      UserData:
-        Fn::Base64: 
-          !Sub 
-            - |
-              #!/bin/bash
-              yum update -y
-              yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
-              yum -y install nagios-nrpe
-              chkconfig --level 2345 nrpe on
-              sed -i '/allowed_hosts=127.0.0.1,::1/s/$/,${NAGIOSSERVER}/' /etc/nagios/nrpe.cfg
-              service nrpe start
-              dnf install net-tools -y
-            - NAGIOSSERVER: !GetAtt NagiosServer.PublicIp
-      KeyName: !Ref KeyName  #netstat -an |grep 5666
-      ImageId: ami-0b0af3577fe5e3532
-      InstanceType: !Ref InstanceType
-      SecurityGroupIds:
-        - !GetAtt NagiosHostSecurityGroup.GroupId
 
 Outputs:
   IPNagiosXI:
