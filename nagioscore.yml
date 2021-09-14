@@ -215,10 +215,11 @@ Resources:
               make install-webconf
               htpasswd -b -c /usr/local/nagios/etc/htpasswd.users nagiosadmin ${NagiosPassword}
               service httpd restart
+              yum install nagios-plugins-snmp -y
+              yum install perl-Net-SNMP -y
               cd /home/ec2-user/nagios && tar zxvf nagios-plugins-2.3.3.tar.gz 
               cd /home/ec2-user/nagios/nagios-plugins-2.3.3 && ./configure --with-nagios-user=nagios --with-nagios-group=nagios
               make && make install
-              yum install perl-Net-SNMP -y
               chkconfig --add nagios
               chkconfig nagios on
               service nagios start
@@ -239,17 +240,17 @@ Resources:
 
               sed -i "s/linksys-srw224p/router/g" switch.cfg
               sed -i "s/192.168.1.253/$ROUTERIP/g" switch.cfg
-              sed -i "s/public/rocommunity public ${NAGIOSSERVERIP}/g" /etc/snmp/snmpd.conf
-              service snmpd restart
-              chkconfig snmpd on
+              #sed -i "s/public/recommunity public ${NAGIOSSERVERIP}/g" /etc/snmp/snmpd.conf
+              #service snmpd restart
+              #chkconfig snmpd on
 
               sed -i "s/localhost/redhat/g" redhat.cfg
               sed -i "s/127.0.0.1/${REDHAT}/g" redhat.cfg
-              sed -i '45,50d' redhat.cfg
+              sed -i '41,46d' redhat.cfg
 
               sed -i "s/localhost/ubuntu/g" ubuntu.cfg
               sed -i "s/127.0.0.1/${UBUNTU}/g" ubuntu.cfg
-              sed -i '45,50d' ubuntu.cfg
+              sed -i '41,46d' ubuntu.cfg
               
               sed -i "s/winserver/windows10/g" windows10.cfg
               sed -i "s/192.168.1.2/${WIN}/g" windows10.cfg
