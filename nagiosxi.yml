@@ -2,20 +2,6 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: |
   CloudFormation Template for NagiosXI and Nagios log on EC2.
 Parameters:
-  NagiosPassword:
-    AllowedPattern: '^[A-Za-z][a-zA-Z0-9@%$_-]{8,41}$'
-    ConstraintDescription: must contain only alphanumeric characters.
-    Description: The WordPress database admin account password
-    MaxLength: '41'
-    MinLength: '8'
-    Default: 'nagiosadmin'
-    Type: String
-  Email:
-    Description: The WordPress database admin account password
-    MaxLength: '41'
-    MinLength: '8'
-    Default: 'drmehmet510@gmail.com'
-    Type: String 
   InstanceType:
     Description: WebServer EC2 instance type
     Type: String
