@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: |
-  CloudFormation Template for Nagios on EC2.
+  CloudFormation Template for NagiosXI and Nagios log on EC2.
 Parameters:
   NagiosPassword:
     AllowedPattern: '^[A-Za-z][a-zA-Z0-9@%$_-]{8,41}$'
@@ -73,6 +73,101 @@ Resources:
       Tags:
         - Key: Name
           Value: Server RulesInbound
+  NagiosHostRedhatSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: 'Nagios Host Redhat Access Security Group'
+      GroupDescription: 'Nagios Host redhat Access Security Group'
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '443'
+          ToPort: '443'
+          CidrIp: '0.0.0.0/0'
+        - IpProtocol: tcp
+          FromPort: '80'
+          ToPort: '80'
+          CidrIp: '0.0.0.0/0'
+        - IpProtocol: tcp
+          FromPort: '22'
+          ToPort: '22'
+          CidrIp: '0.0.0.0/0'
+        - IpProtocol: tcp
+          FromPort: '5666'
+          ToPort: '5666'
+          CidrIp: '0.0.0.0/0'
+        - IpProtocol: icmp
+          FromPort: '-1'
+          ToPort: '-1'
+          CidrIp: '0.0.0.0/0'
+      Tags:
+        - Key: Name
+          Value: Server RulesInbound
+  NagiosHostUbuntuSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: 'Nagios Host Ubuntu Access Security Group'
+      GroupDescription: 'Nagios Host Ubuntu  Access Security Group'
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '443'
+          ToPort: '443'
+          CidrIp: '0.0.0.0/0'
+        - IpProtocol: tcp
+          FromPort: '80'
+          ToPort: '80'
+          CidrIp: '0.0.0.0/0'
+        - IpProtocol: tcp
+          FromPort: '22'
+          ToPort: '22'
+          CidrIp: '0.0.0.0/0'
+        - IpProtocol: tcp
+          FromPort: '5666'
+          ToPort: '5666'
+          CidrIp: '0.0.0.0/0'
+        - IpProtocol: icmp
+          FromPort: '-1'
+          ToPort: '-1'
+          CidrIp: '0.0.0.0/0'
+      Tags:
+        - Key: Name
+          Value: Server RulesInbound
+  NagiosWinHostSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: 'Nagios Hostwin Access Security Group'
+      GroupDescription: 'Nagios Hostwin  Access Security Group'
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '443'
+          ToPort: '443'
+          CidrIp: '0.0.0.0/0'
+        - IpProtocol: tcp
+          FromPort: '80'
+          ToPort: '80'
+          CidrIp: '0.0.0.0/0'
+        - IpProtocol: tcp
+          FromPort: '22'
+          ToPort: '22'
+          CidrIp: '0.0.0.0/0'
+        - IpProtocol: tcp
+          FromPort: '5666'
+          ToPort: '5666'
+          CidrIp: '0.0.0.0/0'
+        - IpProtocol: tcp
+          FromPort: '12489'
+          ToPort: '12489'
+          CidrIp: '0.0.0.0/0'
+        - IpProtocol: tcp
+          FromPort: '3389'
+          ToPort: '3389'
+          CidrIp: '0.0.0.0/0'
+        - IpProtocol: icmp
+          FromPort: '-1'
+          ToPort: '-1'
+          CidrIp: '0.0.0.0/0'
+      Tags:
+        - Key: Name
+          Value: Server RulesInbound 
 
   NagiosServer:
     Type: AWS::EC2::Instance
@@ -100,14 +195,88 @@ Resources:
           chkconfig --add nagios
           chkconfig nagios on
 
+          #install nagios log server
+          cd /tmp/ &&
+          wget https://assets.nagios.com/downloads/nagios-log-server/nagioslogserver-latest.tar.gz &&
+          tar -zxf nagioslogserver-latest.tar.gz &&
+          cd /tmp/nagioslogserver/ &&
+          ./fullinstall -m -n &&
+
+
       KeyName: !Ref KeyName
       ImageId: ami-001986d37ece5b4ab #ami-0001378efdafd5401
       InstanceType: !Ref InstanceType
       SecurityGroupIds:
         - !GetAtt NagiosServerSecurityGroup.GroupId
+
+  NAGIOSSERVERIP:
+    Type: AWS::EC2::EIP
+  IPAssoc:
+    Type: AWS::EC2::EIPAssociation
+    Properties:
+      InstanceId: !Ref 'NagiosServer'
+      EIP: !Ref 'NAGIOSSERVERIP'
+
+  NagiosHostRedhat:
+    Type: AWS::EC2::Instance
+    Properties:
+      Tags:
+        - Key: Name
+          Value: nagios-host-redhat
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          yum update -y
+          yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
+          yum -y install nagios-nrpe
+          chkconfig --level 2345 nrpe on
+          sed -i '/allowed_hosts=127.0.0.1,::1/s/$/,${NAGIOSSERVERIP}/' /etc/nagios/nrpe.cfg
+          service nrpe start
+          dnf install net-tools -y
+      KeyName: !Ref KeyName  #netstat -an |grep 5666
+      ImageId: ami-0b0af3577fe5e3532
+      InstanceType: !Ref InstanceType
+      SecurityGroupIds:
+        - !GetAtt NagiosHostRedhatSecurityGroup.GroupId
+  NagiosHostUbuntu:
+    Type: AWS::EC2::Instance
+    Properties:
+      Tags:
+        - Key: Name
+          Value: nagios-host-ubuntu
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          apt-get update && apt-get upgrade -y
+          apt-get install nagios-nrpe-plugin -y
+          chkconfig --level 2345 nrpe on
+          sed -i '/allowed_hosts=127.0.0.1,::1/s/$/,${NAGIOSSERVERIP}/' /etc/nagios/nrpe.cfg
+          systemctl ststus nagios-nrpe-server.service
+          sleep 300
+          curl -s -O http://${NAGIOSSERVERIP}/nagioslogserver/scripts/setup-linux.sh && bash setup-linux.sh -s ${NAGIOSSERVERIP} -p 5544
+      KeyName: !Ref KeyName  #netstat -an |grep 5666
+      ImageId: ami-0747bdcabd34c712a
+      InstanceType: !Ref InstanceType
+      SecurityGroupIds:
+        - !GetAtt NagiosHostUbuntuSecurityGroup.GroupId
+  NagiosHostWindows:
+    Type: AWS::EC2::Instance
+    Properties:
+      Tags:
+        - Key: Name
+          Value: nagios-host-windows
+      KeyName: !Ref KeyName  
+      ImageId: ami-029bfac3973c1bda1
+      InstanceType: !Ref InstanceType
+      SecurityGroupIds:
+        - !GetAtt NagiosWinHostSecurityGroup.GroupId
   
 
 Outputs:
   IPNagiosXI:
     Description: Nagios XI IP
     Value: !Join [ "", [ 'http://',!GetAtt NagiosServer.PublicIp, '/nagiosxi/' ]]
+
+  IPNagiosLog:
+    Description: Nagioslog IP
+    Value: !Join [ "", [ 'http://',!GetAtt NagiosServer.PublicIp, '/nagioslogserver/' ]]
