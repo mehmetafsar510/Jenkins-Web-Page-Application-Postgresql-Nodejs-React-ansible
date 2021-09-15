@@ -182,18 +182,18 @@ Resources:
           chkconfig nagios on
 
           #install nagios log server
-          export PATH=$PATH:/usr/bin
-          yum -y install epel-release
-          yum -y update
-          cd /tmp/ &&
-          wget https://assets.nagios.com/downloads/nagios-log-server/nagioslogserver-latest.tar.gz &&
-          tar -zxf nagioslogserver-latest.tar.gz &&
-          cd /tmp/nagioslogserver/ &&
-          ./fullinstall -m -n &&
+          #export PATH=$PATH:/usr/bin
+          #yum -y install epel-release
+          #yum -y update
+          #cd /tmp/ &&
+          #wget https://assets.nagios.com/downloads/nagios-log-server/nagioslogserver-latest.tar.gz &&
+          #tar -zxf nagioslogserver-latest.tar.gz &&
+          #cd /tmp/nagioslogserver/ &&
+          #./fullinstall -m -n &&
 
           # Disable iptables
-          iptables -F
-          service iptables stop
+          #iptables -F
+          #service iptables stop
 
 
       KeyName: !Ref KeyName
@@ -247,9 +247,9 @@ Resources:
           systemctl ststus nagios-nrpe-server.service
           #nagiosloghost
           #curl -s -O http://${NAGIOSSERVERIP}/nagioslogserver/scripts/setup-linux.sh
-          wget https://raw.githubusercontent.com/mehmetafsar510/jenkins-web-page-application-postgresql-nodejs-react-ansible/master/setup-linux.sh
-          chmod 777 setup-linux.sh
-          bash setup-linux.sh -s ${NAGIOSSERVERIP} -p 5544
+          #wget https://raw.githubusercontent.com/mehmetafsar510/jenkins-web-page-application-postgresql-nodejs-react-ansible/master/setup-linux.sh
+          #chmod 777 setup-linux.sh
+          #bash setup-linux.sh -s ${NAGIOSSERVERIP} -p 5544
       KeyName: !Ref KeyName  #netstat -an |grep 5666
       ImageId: ami-0747bdcabd34c712a
       InstanceType: !Ref InstanceType
