@@ -241,10 +241,10 @@ Resources:
         Fn::Base64: !Sub |
           #!/bin/bash
           apt-get update && apt-get upgrade -y
-          apt-get install nagios-nrpe-plugin -y
+          apt install nagios-nrpe-server nagios-plugins -y
           chkconfig --level 2345 nrpe on
           sed -i '/allowed_hosts=127.0.0.1,::1/s/$/,${NAGIOSSERVERIP}/' /etc/nagios/nrpe.cfg
-          systemctl ststus nagios-nrpe-server.service
+          systemctl restart nagios-nrpe-server
           #nagiosloghost
           #curl -s -O http://${NAGIOSSERVERIP}/nagioslogserver/scripts/setup-linux.sh
           #wget https://raw.githubusercontent.com/mehmetafsar510/jenkins-web-page-application-postgresql-nodejs-react-ansible/master/setup-linux.sh
