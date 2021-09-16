@@ -209,7 +209,6 @@ Resources:
           iptables -F
           service iptables stop
 
-
       KeyName: !Ref KeyName
       ImageId: ami-001986d37ece5b4ab #ami-0001378efdafd5401
       InstanceType: !Ref InstanceType
