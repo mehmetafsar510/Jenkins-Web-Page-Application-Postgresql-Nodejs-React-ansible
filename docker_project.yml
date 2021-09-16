@@ -223,13 +223,13 @@
           path: "{{ container_path }}"
         source: build
         state: present
-    - name: Launch nginx and react artifact container
-      docker_container:
-        name: "{{ artf_container_name }}"
-        image: "{{ artf_image_name }}"
-        state: started
-        ports:
-        - "80:80"
+    #- name: Launch nginx and react artifact container
+    #  docker_container:
+    #    name: "{{ artf_container_name }}"
+    #    image: "{{ artf_image_name }}"
+    #    state: started
+    #    ports:
+    #    - "80:80"
     #- name: let's start encrypt
     #  become: false
     #  shell: "cd {{ nginx_certbot_path }} && ./init-letsencrypt.sh"
