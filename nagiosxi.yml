@@ -2,6 +2,14 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: |
   CloudFormation Template for NagiosXI and Nagios log on EC2.
 Parameters:
+  NagiosPassword:
+    AllowedPattern: '^[A-Za-z][a-zA-Z0-9@%$_-]{8,41}$'
+    ConstraintDescription: must contain only alphanumeric characters.
+    Description: The WordPress database admin account password
+    MaxLength: '41'
+    MinLength: '8'
+    Default: 'nagiosadmin'
+    Type: String
   InstanceType:
     Description: WebServer EC2 instance type
     Type: String
@@ -219,6 +227,10 @@ Resources:
         Fn::Base64: !Sub |
           #!/bin/bash
           yum update -y
+          yum install openssl openssl-devel gcc make git -y
+          adduser -m nagios
+          echo ${NagiosPassword} | passwd nagios --stdin
+
           yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
           yum install xinetd -y
           yum -y install nagios-nrpe
@@ -246,16 +258,51 @@ Resources:
         Fn::Base64: !Sub |
           #!/bin/bash
           apt-get update && apt-get upgrade -y
+          apt install openssl libssl-dev gcc make git -y
+          adduser -m nagios
+          echo ${NagiosPassword} | passwd nagios --stdin
+          wget http://www.nagios-plugins.org/download/nagios-plugins-2.2.1.tar.gz
+          tar zxf nagios-plugins-2.2.1.tar.gz
+          cd /home/ubuntu/nagios-plugins-2.2.1
+          ./configure
+          make
+          make install
+          cd /home/ubuntu/
+          git clone --recursive https://github.com/valerytschopp/ceph-nagios-plugins.git
+          cd /home/ubuntu/ceph-nagios-plugins
+          make dist
+          make install
           apt install xinetd -y
-          apt install nagios-nrpe-server nagios-plugins -y
+          cd /home/ubuntu/
+          wget https://github.com/NagiosEnterprises/nrpe/releases/download/nrpe-3.1.0/nrpe-3.1.0.tar.gz
+          tar xvfz nrpe-3.1.0.tar.gz
+          cd /home/ubuntu/nrpe-3.1.0
+          ./configure
+          make all
+          make install-groups-users
+          make install
+          make install-config
+          make install-init
           systemctl enable xinetd
           systemctl restart xinetd
           systemctl reload xinetd
-          chkconfig --level 2345 nrpe on
+          systemctl enable nrpe
+          systemctl start nrpe
           sed -i '/allowed_hosts=127.0.0.1,::1/s/$/,${NAGIOSSERVERIP}/' /etc/nagios/nrpe.cfg
           sed -i 's/<ip-address-of-nagios-core>/${NAGIOSSERVERIP}/g' /etc/xinetd.d/nrpe
           systemctl restart xinetd
-          systemctl restart nagios-nrpe-server
+          systemctl restart nrpe
+
+          #apt install xinetd -y
+          #apt install nagios-nrpe-server nagios-plugins -y
+          #systemctl enable xinetd
+          #systemctl restart xinetd
+          #systemctl reload xinetd
+          #chkconfig --level 2345 nrpe on
+          #sed -i '/allowed_hosts=127.0.0.1,::1/s/$/,${NAGIOSSERVERIP}/' /etc/nagios/nrpe.cfg
+          #sed -i 's/<ip-address-of-nagios-core>/${NAGIOSSERVERIP}/g' /etc/xinetd.d/nrpe
+          #systemctl restart xinetd
+          #systemctl restart nagios-nrpe-server
           #nagiosloghost
           #curl -s -O http://${NAGIOSSERVERIP}/nagioslogserver/scripts/setup-linux.sh
           #wget https://raw.githubusercontent.com/mehmetafsar510/jenkins-web-page-application-postgresql-nodejs-react-ansible/master/setup-linux.sh
