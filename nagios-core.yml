@@ -313,7 +313,7 @@ Resources:
         Fn::Base64: !Sub |
           #!/bin/bash
           apt-get update && apt-get upgrade -y
-          apt-get install nagios-nrpe-plugin -y
+          apt install nagios-nrpe-server nagios-plugins -y
           chkconfig --level 2345 nrpe on
           sed -i '/allowed_hosts=127.0.0.1,::1/s/$/,${NAGIOSSERVERIP}/' /etc/nagios/nrpe.cfg
           systemctl ststus nagios-nrpe-server.service

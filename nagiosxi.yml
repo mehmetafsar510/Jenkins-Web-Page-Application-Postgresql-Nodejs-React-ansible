@@ -2,20 +2,6 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: |
   CloudFormation Template for NagiosXI and Nagios log on EC2.
 Parameters:
-  NagiosPassword:
-    AllowedPattern: '^[A-Za-z][a-zA-Z0-9@%$_-]{8,41}$'
-    ConstraintDescription: must contain only alphanumeric characters.
-    Description: The WordPress database admin account password
-    MaxLength: '41'
-    MinLength: '8'
-    Default: 'nagiosadmin'
-    Type: String
-  Email:
-    Description: The WordPress database admin account password
-    MaxLength: '41'
-    MinLength: '8'
-    Default: 'drmehmet510@gmail.com'
-    Type: String 
   InstanceType:
     Description: WebServer EC2 instance type
     Type: String
@@ -196,18 +182,18 @@ Resources:
           chkconfig nagios on
 
           #install nagios log server
-          export PATH=$PATH:/usr/bin
-          yum -y install epel-release
-          yum -y update
-          cd /tmp/ &&
-          wget https://assets.nagios.com/downloads/nagios-log-server/nagioslogserver-latest.tar.gz &&
-          tar -zxf nagioslogserver-latest.tar.gz &&
-          cd /tmp/nagioslogserver/ &&
-          ./fullinstall -m -n &&
+          #export PATH=$PATH:/usr/bin
+          #yum -y install epel-release
+          #yum -y update
+          #cd /tmp/ &&
+          #wget https://assets.nagios.com/downloads/nagios-log-server/nagioslogserver-latest.tar.gz &&
+          #tar -zxf nagioslogserver-latest.tar.gz &&
+          #cd /tmp/nagioslogserver/ &&
+          #./fullinstall -m -n &&
 
           # Disable iptables
-          iptables -F
-          service iptables stop
+          #iptables -F
+          #service iptables stop
 
       KeyName: !Ref KeyName
       ImageId: ami-001986d37ece5b4ab #ami-0001378efdafd5401
@@ -254,15 +240,15 @@ Resources:
         Fn::Base64: !Sub |
           #!/bin/bash
           apt-get update && apt-get upgrade -y
-          apt-get install nagios-nrpe-plugin -y
+          apt install nagios-nrpe-server nagios-plugins -y
           chkconfig --level 2345 nrpe on
           sed -i '/allowed_hosts=127.0.0.1,::1/s/$/,${NAGIOSSERVERIP}/' /etc/nagios/nrpe.cfg
-          systemctl ststus nagios-nrpe-server.service
+          systemctl restart nagios-nrpe-server
           #nagiosloghost
           #curl -s -O http://${NAGIOSSERVERIP}/nagioslogserver/scripts/setup-linux.sh
-          wget https://raw.githubusercontent.com/mehmetafsar510/jenkins-web-page-application-postgresql-nodejs-react-ansible/master/setup-linux.sh
-          chmod 777 setup-linux.sh
-          bash setup-linux.sh -s ${NAGIOSSERVERIP} -p 5544
+          #wget https://raw.githubusercontent.com/mehmetafsar510/jenkins-web-page-application-postgresql-nodejs-react-ansible/master/setup-linux.sh
+          #chmod 777 setup-linux.sh
+          #bash setup-linux.sh -s ${NAGIOSSERVERIP} -p 5544
       KeyName: !Ref KeyName  #netstat -an |grep 5666
       ImageId: ami-0747bdcabd34c712a
       InstanceType: !Ref InstanceType
