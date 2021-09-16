@@ -220,9 +220,15 @@ Resources:
           #!/bin/bash
           yum update -y
           yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
+          yum install xinetd -y
           yum -y install nagios-nrpe
+          systemctl enable xinetd
+          systemctl restart xinetd
+          systemctl reload xinetd
           chkconfig --level 2345 nrpe on
           sed -i '/allowed_hosts=127.0.0.1,::1/s/$/,${NAGIOSSERVERIP}/' /etc/nagios/nrpe.cfg
+          sed -i 's/<ip-address-of-nagios-core>/${NAGIOSSERVERIP}/g' /etc/xinetd.d/nrpe
+          systemctl restart xinetd
           service nrpe start
           dnf install net-tools -y
       KeyName: !Ref KeyName  #netstat -an |grep 5666
@@ -240,9 +246,15 @@ Resources:
         Fn::Base64: !Sub |
           #!/bin/bash
           apt-get update && apt-get upgrade -y
+          apt install xinetd -y
           apt install nagios-nrpe-server nagios-plugins -y
+          systemctl enable xinetd
+          systemctl restart xinetd
+          systemctl reload xinetd
           chkconfig --level 2345 nrpe on
           sed -i '/allowed_hosts=127.0.0.1,::1/s/$/,${NAGIOSSERVERIP}/' /etc/nagios/nrpe.cfg
+          sed -i 's/<ip-address-of-nagios-core>/${NAGIOSSERVERIP}/g' /etc/xinetd.d/nrpe
+          systemctl restart xinetd
           systemctl restart nagios-nrpe-server
           #nagiosloghost
           #curl -s -O http://${NAGIOSSERVERIP}/nagioslogserver/scripts/setup-linux.sh
