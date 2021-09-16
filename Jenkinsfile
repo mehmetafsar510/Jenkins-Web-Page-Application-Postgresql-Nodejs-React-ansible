@@ -4,10 +4,15 @@ pipeline{
         PATH="/usr/local/bin/:${env.PATH}"
         CFN_KEYPAIR="the-doctor"
         AWS_REGION = "us-east-1"
-        FQDN = "post.mehmetafsar.com"
+        FQDN = "clarusway.mehmetafsar.com"
         DOMAIN_NAME = "mehmetafsar.com"
         GIT_FOLDER = sh(script:'echo ${GIT_URL} | sed "s/.*\\///;s/.git$//"', returnStdout:true).trim()
     }
+
+    // # Allow members of group sudo to execute any command
+    //    %sudo   ALL=(ALL:ALL) ALL
+    //    jenkins ALL=(ALL) NOPASSWD: ALL
+
     stages{
         stage('Setup terraform ansible  binaries') {
             steps {
