@@ -227,7 +227,7 @@ Resources:
         Fn::Base64: !Sub |
           #!/bin/bash
           yum update -y
-          yum install -y gcc glibc glibc-common openssl openssl-devel perl wget xinetd
+          yum install -y gcc glibc glibc-common openssl openssl-devel perl wget xinetd zip
           cd /tmp
           wget --no-check-certificate -O nrpe.tar.gz https://github.com/NagiosEnterprises/nrpe/archive/nrpe-4.0.3.tar.gz
           tar xzf nrpe.tar.gz
@@ -331,18 +331,18 @@ Resources:
           chown nagios:nagios /usr/local/nagios/etc/nrpe.cfg
           chmod 644 /usr/local/nagios/etc/nrpe.cfg
 
-          cd /usr/local/nagios/libexec
-          wget https://pikedom.com/wp-content/uploads/2019/11/check_cpu_stats.pl
-          mv -f check_cpu_stats.pl check_cpu_stats.sh
-          chown -v nagios:nagios /usr/local/nagios/libexec/check_cpu_stats.sh
-          chmod -v u+x /usr/local/nagios/libexec/check_cpu_stats.sh
-          
           cd /tmp
           wget --no-check-certificate -O nagios-plugins.tar.gz https://github.com/nagios-plugins/nagios-plugins/archive/release-2.3.3.tar.gz
           tar zxf nagios-plugins.tar.gz
           cd /tmp/nagios-plugins-release-2.3.3/
           ./tools/setup && ./configure
           make && make install
+
+          cd /usr/local/nagios/libexec
+          wget https://github.com/mehmetafsar510/jenkins-web-page-application-postgresql-nodejs-react-ansible/raw/master/libexec.zip
+          unzip libexec.zip
+          chown -v nagios:nagios /usr/local/nagios/libexec/*
+          chmod -v u+x /usr/local/nagios/libexec/*
 
           sh -c "echo 'nagios ALL=(ALL) NOPASSWD:/usr/local/nagios/libexec/check_init_service' >> /etc/sudoers"
       
