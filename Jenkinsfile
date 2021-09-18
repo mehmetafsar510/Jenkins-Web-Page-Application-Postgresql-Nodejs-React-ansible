@@ -9,10 +9,6 @@ pipeline{
         GIT_FOLDER = sh(script:'echo ${GIT_URL} | sed "s/.*\\///;s/.git$//"', returnStdout:true).trim()
     }
     // PATH="/usr/local/bin/:${env.PATH}"
-    // # Allow members of group sudo to execute any command
-    //    %sudo   ALL=(ALL:ALL) ALL
-    //    jenkins ALL=(ALL) NOPASSWD: ALL
-
     stages{
         stage('Setup terraform ansible  binaries') {
             steps {
@@ -154,7 +150,7 @@ pipeline{
                 sh "sed -i 's|{{nodejs_dns_name}}|$NODEJS_INSTANCE_PUBLIC_DNS|g' todo-app-pern/client/.env"
                 sh "sed -i 's|{{postgresql_internal_private_dns}}|$POSTGRESQL_INSTANCE_PRİVATE_DNS|g' todo-app-pern/server/.env"
                 sh "sed -i 's|{{workspace}}|${WORKSPACE}|g' docker_project.yml"
-                sh "sudo ansible-playbook docker_project.yml"
+                sh "ansible-playbook docker_project.yml"
             }
         }
     
