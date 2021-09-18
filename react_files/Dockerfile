@@ -1,20 +1,29 @@
-FROM node:14
+# Bu dockerfile react'in artifact'i için hazırlanmıştır
+
+FROM node:14 as build-deps
 
 # Create app directory
-WORKDIR /app
+WORKDIR /usr/src/app
 
+COPY package.json yarn.lock ./
 
-COPY package*.json ./
-
-RUN yarn install
-# If you are building your code for production
-# RUN npm ci --only=production
-
+# this separates the dependency installation from the edits to our actual source files.
+RUN yarn
 
 # copy all files into the image
-COPY . .
+COPY . ./
 
-# to expose application on 5000 port
-EXPOSE 3000
+# This will produce the ‘artifact’ inside of the build directory 
+RUN yarn build
 
-CMD ["yarn", "run", "start"]
+FROM nginx:1.15-alpine
+
+COPY --from=build-deps /usr/src/app/build /usr/share/nginx/html
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]
+
+
+# Harika bir makale: Detaylı bu step'lerin açıklamaları buradan bulunabilir
+# https://medium.com/@shakyShane/lets-talk-about-docker-artifacts-27454560384f
