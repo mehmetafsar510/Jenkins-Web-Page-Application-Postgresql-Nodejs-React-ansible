@@ -4,7 +4,7 @@ pipeline{
         PATH="/usr/local/bin/:${env.PATH}"
         CFN_KEYPAIR="the-doctor"
         AWS_REGION = "us-east-1"
-        FQDN = "clarusway.mehmetafsar.com"
+        FQDN = "post.mehmetafsar.com"
         DOMAIN_NAME = "mehmetafsar.com"
         GIT_FOLDER = sh(script:'echo ${GIT_URL} | sed "s/.*\\///;s/.git$//"', returnStdout:true).trim()
     }
@@ -47,7 +47,7 @@ pipeline{
 
                         chmod 400 ${CFN_KEYPAIR}.pem
 
-                        ssh-keygen -y -f ${CFN_KEYPAIR}.pem >> the_doctor_public.pem
+                        ssh-keygen -y -f ${CFN_KEYPAIR}.pem >> the-doctor_public.pem
                     fi
                 '''                
             }
@@ -150,7 +150,7 @@ pipeline{
         stage('Setting up  configuration with ansible') {
             steps {
                 echo "Setting up  configuration with ansible"
-                sh "sed -i 's|{{key_pair}}|deneme.pem|g' ansible.cfg"
+                sh "sed -i 's|{{key_pair}}|the_doctor.pem|g' ansible.cfg"
                 sh "sed -i 's|{{nodejs_dns_name}}|$NODEJS_INSTANCE_PUBLIC_DNS|g' todo-app-pern/client/.env"
                 sh "sed -i 's|{{postgresql_internal_private_dns}}|$POSTGRESQL_INSTANCE_PRİVATE_DNS|g' todo-app-pern/server/.env"
                 sh "sed -i 's|{{workspace}}|${WORKSPACE}|g' docker_project.yml"
