@@ -1,47 +1,21 @@
-version: "2"
+version: '3'
 
 services:
   nginx:
-    build: ./nginx
-    image: devcomanda/nginx
-    env_file:
-      - ./config.env
+    image: nginx:1.15-alpine
+    restart: unless-stopped
     volumes:
-      - devcomanda_nginx_ssl:/etc/nginx/ssl
-      - devcomanda_certbot_certs:/etc/letsencrypt
-      - test1_devcomanda_com_certbot:/var/www/certbot/post.mehmetafsar.com
-      - ./html:/var/www/html/post.mehmetafsar.com
+      - ./data/nginx:/etc/nginx/conf.d
+      - ./data/certbot/conf:/etc/letsencrypt
+      - ./data/certbot/www:/var/www/certbot
     ports:
       - "80:80"
       - "443:443"
-    restart: always
-
+    command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
   certbot:
-    build: ./certbot
-    image: devcomanda/certbot
-    env_file:
-      - ./config.env
+    image: certbot/certbot
+    restart: unless-stopped
     volumes:
-      - devcomanda_certbot_certs:/etc/letsencrypt
-      - test1_devcomanda_com_certbot:/var/www/certbot/post.mehmetafsar.com
-    depends_on:
-      - nginx
-
-  cron:
-    build: ./cron
-    image: devcomanda/cron
-    environment:
-      COMPOSE_PROJECT_NAME: "${COMPOSE_PROJECT_NAME}"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ./:/workdir:ro
-    depends_on:
-      - nginx
-      - certbot
-
-volumes:
-  devcomanda_nginx_ssl:
-    external: true
-  devcomanda_certbot_certs:
-    external: true
-  test1_devcomanda_com_certbot:
+      - ./data/certbot/conf:/etc/letsencrypt
+      - ./data/certbot/www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
