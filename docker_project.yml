@@ -223,63 +223,13 @@
           path: "{{ container_path }}"
         source: build
         state: present
-    #- name: Launch nginx and react artifact container
-    #  docker_container:
-    #    name: "{{ artf_container_name }}"
-    #    image: "{{ artf_image_name }}"
-    #    state: started
-    #    ports:
-    #    - "80:80"
-    #- name: let's start encrypt
-    #  become: false
-    #  shell: "cd {{ nginx_certbot_path }} && ./init-letsencrypt.sh"
-    #- name: deploy Docker Compose stack
-    #  become: false
-    #  docker_compose:
-    #    project_src: "{{ nginx_certbot_path }}"
-    #    files: docker-compose.yml
-    #    state: present
+    - name: let's start encrypt
+      become: false
+      shell: "cd {{ nginx_certbot_path }} && ./init-letsencrypt.sh"
+    - name: deploy Docker Compose stack
+      become: false
+      docker_compose:
+        project_src: "{{ nginx_certbot_path }}"
+        files: docker-compose.yml
+        state: present
 
-#- name: React UI Server configuration
-#  hosts: _ansible_tls
-#  become: true
-#  gather_facts: No
-#  any_errors_fatal: true
-#  vars:
-#    react_home: {{workspace}}/react_files
-#    nginx_certbot_path: /home/ec2-user/nginx-certbot
-#  tasks:
-#    - name: Install Git
-#      yum:
-#        name: git
-#        state: present
-#    - name: Clone a github repository
-#      git:
-#        repo: https://github.com/wmnnd/nginx-certbot.git
-#        dest: "{{ nginx_certbot_path }}"
-#        clone: yes
-#        update: yes      
-#    - name: copy init-letsencrypt.sh
-#      copy:
-#        src: "{{react_home}}/init-letsencrypt.sh"
-#        dest: "{{ nginx_certbot_path }}"
-#        owner: ec2-user
-#        group: ec2-user
-#        mode: '0775'
-#    - name: copy app.conf files
-#      copy:
-#        src: "{{react_home}}/data/"
-#        dest: "{{ nginx_certbot_path }}"
-#        owner: ec2-user
-#        group: ec2-user
-#        mode: '0775'
-#    #- name: let's start encrypt
-#    #  become: false
-#    #  shell: "cd {{ nginx_certbot_path }} && ./init-letsencrypt.sh"
-#    #- name: deploy Docker Compose stack
-#    #  become: false
-#    #  docker_compose:
-#    #    project_src: "{{ nginx_certbot_path }}"
-#    #    files: docker-compose.yml
-#    #    state: present
-#
