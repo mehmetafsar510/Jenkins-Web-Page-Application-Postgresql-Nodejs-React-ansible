@@ -1,14 +1,14 @@
 pipeline{
     agent any
     environment {
-        PATH="/usr/local/bin/:${env.PATH}"
+        PATH=sh(script:"echo $PATH:/usr/local/bin", returnStdout:true).trim()
         CFN_KEYPAIR="the-doctor"
         AWS_REGION = "us-east-1"
         FQDN = "post.mehmetafsar.com"
         DOMAIN_NAME = "mehmetafsar.com"
         GIT_FOLDER = sh(script:'echo ${GIT_URL} | sed "s/.*\\///;s/.git$//"', returnStdout:true).trim()
     }
-
+    // PATH="/usr/local/bin/:${env.PATH}"
     // # Allow members of group sudo to execute any command
     //    %sudo   ALL=(ALL:ALL) ALL
     //    jenkins ALL=(ALL) NOPASSWD: ALL
@@ -23,8 +23,8 @@ pipeline{
                   sudo yum install -y yum-utils
                   sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo
                   sudo yum -y install terraform
-                  sudo pip3 install --user ansible
-                  sudo pip3 install --user boto3 botocore
+                  pip3 install --user ansible
+                  pip3 install --user boto3 botocore
                   sudo yum install python-boto3 -y
                 """
               }
@@ -154,7 +154,7 @@ pipeline{
                 sh "sed -i 's|{{nodejs_dns_name}}|$NODEJS_INSTANCE_PUBLIC_DNS|g' todo-app-pern/client/.env"
                 sh "sed -i 's|{{postgresql_internal_private_dns}}|$POSTGRESQL_INSTANCE_PRİVATE_DNS|g' todo-app-pern/server/.env"
                 sh "sed -i 's|{{workspace}}|${WORKSPACE}|g' docker_project.yml"
-                sh "ansible-playbook docker_project.yml"
+                sh "sudo ansible-playbook docker_project.yml"
             }
         }
     
