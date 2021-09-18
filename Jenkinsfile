@@ -150,9 +150,7 @@ pipeline{
                 sh "sed -i 's|{{nodejs_dns_name}}|$NODEJS_INSTANCE_PUBLIC_DNS|g' todo-app-pern/client/.env"
                 sh "sed -i 's|{{postgresql_internal_private_dns}}|$POSTGRESQL_INSTANCE_PRİVATE_DNS|g' todo-app-pern/server/.env"
                 sh "sed -i 's|{{workspace}}|${WORKSPACE}|g' docker_project.yml"
-                sh "export ANSIBLE=/home/ec2-user/.local/bin/ansible"
-                sh "export PATH=$PATH:$ANSIBLE/bin"
-                sh "ansible-playbook docker_project.yml"
+                sh "/home/ec2-user/.local/bin/ansible-playbook docker_project.yml"
             }
         }
     
