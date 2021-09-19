@@ -177,13 +177,6 @@
           path: "{{ container_path }}"
         source: build
         state: present
-    - name: Launch nodejs docker container
-      docker_container:
-        name: "{{ container_name }}"
-        image: "{{ image_name }}"
-        state: started
-        ports:
-        - "5000:5000"
     - name: let's start encrypt
       become: false
       shell: "cd {{ nginx_certbot_path }} && ./init-letsencrypt.sh"
