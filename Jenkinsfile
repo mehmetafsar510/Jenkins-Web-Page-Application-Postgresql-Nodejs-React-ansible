@@ -5,7 +5,7 @@ pipeline{
         CFN_KEYPAIR="the-doctor"
         AWS_REGION = "us-east-1"
         FQDN = "clarusway.mehmetafsar.com"
-        FQDNBACKEND = "nodejs.mehmetafsar.com"
+        FQDNBACKEND = "backend.mehmetafsar.com"
         DOMAIN_NAME = "mehmetafsar.com"
         GIT_FOLDER = sh(script:'echo ${GIT_URL} | sed "s/.*\\///;s/.git$//"', returnStdout:true).trim()
     }
