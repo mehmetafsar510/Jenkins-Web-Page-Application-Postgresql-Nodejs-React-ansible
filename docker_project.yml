@@ -147,6 +147,7 @@
       git:
         repo: https://github.com/wmnnd/nginx-certbot.git
         dest: "{{ nginx_certbot_path }}"
+        force: yes
         clone: yes
         update: yes      
     - name: copy Docker Compose files
@@ -232,7 +233,8 @@
         repo: https://github.com/wmnnd/nginx-certbot.git
         dest: "{{ nginx_certbot_path }}"
         clone: yes
-        update: yes      
+        update: yes
+        force: yes      
     - name: copy Docker Compose files
       copy:
         src: "{{react_home}}/docker-compose.yml"
