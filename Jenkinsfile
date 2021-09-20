@@ -167,7 +167,7 @@ pipeline{
                     
                 }                  
             }
-        
+        }
         stage('dns-record-backend'){
             agent any
             steps{
