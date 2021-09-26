@@ -23,6 +23,7 @@ pipeline{
                   pip3 install --user ansible
                   pip3 install --user boto3 botocore
                   sudo yum install python-boto3 -y
+                  ansible --version
                 """
               }
             }
