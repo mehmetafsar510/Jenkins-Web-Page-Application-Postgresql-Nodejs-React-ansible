@@ -7,6 +7,8 @@ pipeline{
         FQDN = "clarusway.mehmetafsar.com"
         FQDNBACKEND = "backend.mehmetafsar.com"
         DOMAIN_NAME = "mehmetafsar.com"
+        ANSIBLE_PRIVATE_KEY_FILE="${WORKSPACE}/.ansible/${CFN_KEYPAIR}"
+        ANSIBLE_HOST_KEY_CHECKING="False"
         GIT_FOLDER = sh(script:'echo ${GIT_URL} | sed "s/.*\\///;s/.git$//"', returnStdout:true).trim()
     }
     // PATH=sh(script:"echo $PATH:/usr/local/bin", returnStdout:true).trim() /home/ec2-user/.local/bin/ansible
@@ -41,11 +43,12 @@ pipeline{
                           --region ${AWS_REGION} \
                           --key-name ${CFN_KEYPAIR} \
                           --query KeyMaterial \
-                          --output text > ${CFN_KEYPAIR}.pem
+                          --output text > ${CFN_KEYPAIR}
 
-                        chmod 400 ${CFN_KEYPAIR}.pem
-
-                        ssh-keygen -y -f ${CFN_KEYPAIR}.pem >> ${CFN_KEYPAIR}_public.pem
+                        chmod 400 ${CFN_KEYPAIR}
+                        
+                        ssh-keygen -y -f ${CFN_KEYPAIR} >> ${CFN_KEYPAIR}.pub
+                        sudo mv -f ${CFN_KEYPAIR} ${WORKSPACE}/.ansible
                     fi
                 '''                
             }
@@ -55,6 +58,7 @@ pipeline{
             agent any
             steps{
                 withAWS(credentials: 'mycredentials', region: 'us-east-1') {
+                    sh "sed -i 's|{{keypair}}|${CFN_KEYPAIR}|g' variable.tf"
                     sh "terraform init" 
                     sh "terraform apply -input=false -auto-approve"
                 }    
@@ -76,13 +80,23 @@ pipeline{
                         if (ip.length() >= 7) {
                             echo "Nodejs Public Ip Address Found: $ip"
                             env.NODEJS_INSTANCE_PUBLIC_DNS = "$ip"
-                            sleep(15)
                             break
+                        }
+                        while(true) {
+                        try{
+                            sh "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i ${JENKINS_HOME}/.ansible/${CFN_KEYPAIR} ec2-user@${NODEJS_INSTANCE_PUBLIC_DNS} hostname"
+                            echo "NODEJS INSTANCE is reachable with SSH."
+                            break
+                        }
+                        catch(Exception){
+                            echo "Could not connect to NODEJS INSTANCE with SSH, I will try again in 10 seconds"
+                            sleep(10)
                         }
                     }
                 }
             }
         }
+    }
 
         stage('Control the  postgresql instance') {
             steps {
@@ -98,7 +112,6 @@ pipeline{
                         if (ip.length() >= 7) {
                             echo "Postgresql Private Ip Address Found: $ip"
                             env.POSTGRESQL_INSTANCE_PRİVATE_DNS = "$ip"
-                            sleep(15)
                             break
                         }
                     }
@@ -187,7 +200,7 @@ pipeline{
         stage('Setting up  configuration with ansible') {
             steps {
                 echo "Setting up  configuration with ansible"
-                sh "sed -i 's|{{key_pair}}|the_doctor.pem|g' ansible.cfg"
+                sh "sed -i 's|{{key_pair}}|${CFN_KEYPAIR}|g' ansible.cfg"
                 sh "sed -i 's|{{nodejs_dns_name}}|$FQDNBACKEND|g' todo-app-pern/client/.env"
                 sh "sed -i 's|{{postgresql_internal_private_dns}}|$POSTGRESQL_INSTANCE_PRİVATE_DNS|g' todo-app-pern/server/.env"
                 sh "sed -i 's|{{workspace}}|${WORKSPACE}|g' docker_project.yml"

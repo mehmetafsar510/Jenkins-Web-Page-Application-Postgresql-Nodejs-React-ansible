@@ -10,5 +10,5 @@ variable "AWS_REGION" {
 
 variable "key_name" {
   type    = string
-  default = "the_doctor"
+  default = "{{keypair}}"
 }
