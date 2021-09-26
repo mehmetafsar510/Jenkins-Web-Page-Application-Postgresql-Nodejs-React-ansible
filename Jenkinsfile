@@ -1,7 +1,7 @@
 pipeline{
     agent any
     environment {
-        PATH=sh(script:"echo $PATH:/usr/local/bin", returnStdout:true).trim()
+        PATH="/usr/local/bin/:${env.PATH}"
         CFN_KEYPAIR="the-doctor"
         AWS_REGION = "us-east-1"
         FQDN = "clarusway.mehmetafsar.com"
@@ -9,7 +9,7 @@ pipeline{
         DOMAIN_NAME = "mehmetafsar.com"
         GIT_FOLDER = sh(script:'echo ${GIT_URL} | sed "s/.*\\///;s/.git$//"', returnStdout:true).trim()
     }
-    // PATH="/usr/local/bin/:${env.PATH}"
+    // PATH=sh(script:"echo $PATH:/usr/local/bin", returnStdout:true).trim() /home/ec2-user/.local/bin/ansible
     stages{
         stage('Setup terraform ansible  binaries') {
             steps {
@@ -32,7 +32,7 @@ pipeline{
             agent any
             steps{
                 sh '''
-                    if [ -f "${CFN_KEYPAIR}.pem" ]
+                    if [ -f "${CFN_KEYPAIR}" ]
                     then 
                         echo "file exists..."
                     else
@@ -44,7 +44,7 @@ pipeline{
 
                         chmod 400 ${CFN_KEYPAIR}.pem
 
-                        ssh-keygen -y -f ${CFN_KEYPAIR}.pem >> the-doctor_public.pem
+                        ssh-keygen -y -f ${CFN_KEYPAIR}.pem >> ${CFN_KEYPAIR}_public.pem
                     fi
                 '''                
             }
@@ -195,7 +195,7 @@ pipeline{
                 sh "sed -i 's|{FQDN}|$FQDN|g' react_files/data/data/nginx/app.conf"
                 sh "sed -i 's|{FQDN}|$FQDNBACKEND|g' nodejs_files/data/data/nginx/app.conf"
                 sh "sed -i 's|{{nodejs_ip}}|$NODEJS_INSTANCE_PUBLIC_DNS|g' nodejs_files/data/data/nginx/app.conf"
-                sh "sudo /home/ec2-user/.local/bin/ansible-playbook docker_project.yml"
+                sh "sudo ansible-playbook docker_project.yml"
             }
         }
     
