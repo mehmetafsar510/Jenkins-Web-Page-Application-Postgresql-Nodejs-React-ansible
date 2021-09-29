@@ -48,7 +48,7 @@ pipeline{
                         chmod 400 ${CFN_KEYPAIR}
                         
                         ssh-keygen -y -f ${CFN_KEYPAIR} >> ${CFN_KEYPAIR}.pub
-                        sudo mv -f ${CFN_KEYPAIR} ${WORKSPACE}/.ansible
+                        sudo mv -f ${CFN_KEYPAIR} ${WORKSPACE}/.ssh
                     fi
                 '''                
             }
