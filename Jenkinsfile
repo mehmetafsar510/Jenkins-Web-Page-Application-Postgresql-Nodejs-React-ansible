@@ -209,7 +209,7 @@ pipeline{
                 sh "sed -i 's|{FQDN}|$FQDN|g' react_files/data/data/nginx/app.conf"
                 sh "sed -i 's|{FQDN}|$FQDNBACKEND|g' nodejs_files/data/data/nginx/app.conf"
                 sh "sed -i 's|{{nodejs_ip}}|$NODEJS_INSTANCE_PUBLIC_DNS|g' nodejs_files/data/data/nginx/app.conf"
-                sh "sudo ansible-playbook docker_project.yml"   // --extra-vars "{{workspace}}=${WORKSPACE}"  sh 'envsubst < docker-compose.yml > docker-compose-tagged.yml'
+                sh "sudo ansible-playbook docker_project.yml"   // --extra-vars "workspace=${WORKSPACE}"  sh 'envsubst < docker-compose.yml > docker-compose-tagged.yml'
             }
         }
     
