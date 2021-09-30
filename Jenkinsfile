@@ -45,6 +45,7 @@ pipeline{
                         ssh-keygen -y -f ${CFN_KEYPAIR}.pem >> ${CFN_KEYPAIR}.pub
                         mkdir -p ${JENKINS_HOME}/.ssh
                         mv -f ${CFN_KEYPAIR}.pem ${JENKINS_HOME}/.ssh
+                        chown jenkins:jenkins ${JENKINS_HOME}/.ssh/${CFN_KEYPAIR}.pem
                     fi
                 '''                
             }
@@ -205,7 +206,7 @@ pipeline{
                 sh "sed -i 's|{FQDN}|$FQDN|g' react_files/data/data/nginx/app.conf"
                 sh "sed -i 's|{FQDN}|$FQDNBACKEND|g' nodejs_files/data/data/nginx/app.conf"
                 sh "sed -i 's|{{nodejs_ip}}|$NODEJS_INSTANCE_PUBLIC_DNS|g' nodejs_files/data/data/nginx/app.conf"
-                sh "sudo /home/ec2-user/.local/bin/ansible-playbook -b docker_project.yml"   // --extra-vars "workspace=${WORKSPACE}"  sh 'envsubst < docker-compose.yml > docker-compose-tagged.yml'
+                sh "sudo /home/ec2-user/.local/bin/ansible-playbook  docker_project.yml"   // --extra-vars "workspace=${WORKSPACE}"  sh 'envsubst < docker-compose.yml > docker-compose-tagged.yml'
             }
         }
 
