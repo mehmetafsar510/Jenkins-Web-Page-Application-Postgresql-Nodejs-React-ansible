@@ -213,7 +213,7 @@ pipeline{
         stage('Run QA Automation Tests'){
             steps {
                 echo "Run the Selenium Functional Test on QA Environment"
-                sh 'ansible-playbook -vvv --connection=local --inventory 127.0.0.1, --extra-vars "workspace=${WORKSPACE} dnsname=${FQDN}" pb_run_selenium_jobs.yaml'
+                sh 'sudo /home/ec2-user/.local/bin/ansible-playbook -vvv --connection=local --inventory 127.0.0.1, --extra-vars "workspace=${WORKSPACE} dnsname=${FQDN}" pb_run_selenium_jobs.yaml'
             }
         }
     
