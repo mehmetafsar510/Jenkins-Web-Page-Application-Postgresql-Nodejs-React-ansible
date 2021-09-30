@@ -167,36 +167,36 @@ pipeline{
             }
         }
 
-        stage('dns-record-frontend'){
-            agent any
-            steps{
-                withAWS(credentials: 'mycredentials', region: 'us-east-1') {
-                    script {
-                        env.ELB_DNS = sh(script:'aws ec2 describe-instances --region ${AWS_REGION} --filters Name=tag-value,Values=ansible_react  --query Reservations[*].Instances[*].[PublicIpAddress] --output text | sed "s/\\s*None\\s*//g"', returnStdout:true).trim()
-                        env.ZONE_ID = sh(script:"aws route53 list-hosted-zones-by-name --dns-name $DOMAIN_NAME --query HostedZones[].Id --output text | cut -d/ -f3", returnStdout:true).trim()   
-                    }
-                    sh "sed -i 's|{{DNS}}|$ELB_DNS|g' dnsrecord.json"
-                    sh "sed -i 's|{{FQDN}}|$FQDN|g' dnsrecord.json"
-                    sh "aws route53 change-resource-record-sets --hosted-zone-id $ZONE_ID --change-batch file://dnsrecord.json"
-                    
-                }                  
-            }
-        }
-        stage('dns-record-backend'){
-            agent any
-            steps{
-                withAWS(credentials: 'mycredentials', region: 'us-east-1') {
-                    script {
-                        env.ELB_DNS = sh(script:'aws ec2 describe-instances --region ${AWS_REGION} --filters Name=tag-value,Values=ansible_nodejs  --query Reservations[*].Instances[*].[PublicIpAddress] --output text | sed "s/\\s*None\\s*//g"', returnStdout:true).trim()
-                        env.ZONE_ID = sh(script:"aws route53 list-hosted-zones-by-name --dns-name $DOMAIN_NAME --query HostedZones[].Id --output text | cut -d/ -f3", returnStdout:true).trim()   
-                    }
-                    sh "sed -i 's|{{DNS}}|$ELB_DNS|g' dnsrecord.json"
-                    sh "sed -i 's|{{FQDN}}|$FQDNBACKEND|g' dnsrecord.json"
-                    sh "aws route53 change-resource-record-sets --hosted-zone-id $ZONE_ID --change-batch file://dnsrecord.json"
-                    
-                }                  
-            }
-        }
+        //stage('dns-record-frontend'){
+        //    agent any
+        //    steps{
+        //        withAWS(credentials: 'mycredentials', region: 'us-east-1') {
+        //            script {
+        //                env.ELB_DNS = sh(script:'aws ec2 describe-instances --region ${AWS_REGION} --filters Name=tag-value,Values=ansible_react  --query Reservations[*].Instances[*].[PublicIpAddress] --output text | sed "s/\\s*None\\s*//g"', returnStdout:true).trim()
+        //                env.ZONE_ID = sh(script:"aws route53 list-hosted-zones-by-name --dns-name $DOMAIN_NAME --query HostedZones[].Id --output text | cut -d/ -f3", returnStdout:true).trim()   
+        //            }
+        //            sh "sed -i 's|{{DNS}}|$ELB_DNS|g' dnsrecord.json"
+        //            sh "sed -i 's|{{FQDN}}|$FQDN|g' dnsrecord.json"
+        //            sh "aws route53 change-resource-record-sets --hosted-zone-id $ZONE_ID --change-batch file://dnsrecord.json"
+        //            
+        //        }                  
+        //    }
+        //}
+        //stage('dns-record-backend'){
+        //    agent any
+        //    steps{
+        //        withAWS(credentials: 'mycredentials', region: 'us-east-1') {
+        //            script {
+        //                env.ELB_DNS = sh(script:'aws ec2 describe-instances --region ${AWS_REGION} --filters Name=tag-value,Values=ansible_nodejs  --query Reservations[*].Instances[*].[PublicIpAddress] --output text | sed "s/\\s*None\\s*//g"', returnStdout:true).trim()
+        //                env.ZONE_ID = sh(script:"aws route53 list-hosted-zones-by-name --dns-name $DOMAIN_NAME --query HostedZones[].Id --output text | cut -d/ -f3", returnStdout:true).trim()   
+        //            }
+        //            sh "sed -i 's|{{DNS}}|$ELB_DNS|g' dnsrecord.json"
+        //            sh "sed -i 's|{{FQDN}}|$FQDNBACKEND|g' dnsrecord.json"
+        //            sh "aws route53 change-resource-record-sets --hosted-zone-id $ZONE_ID --change-batch file://dnsrecord.json"
+        //            
+        //        }                  
+        //    }
+        //}
         stage('Setting up  configuration with ansible') {
             steps {
                 echo "Setting up  configuration with ansible"
