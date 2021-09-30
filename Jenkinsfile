@@ -34,7 +34,7 @@ pipeline{
             agent any
             steps{
                 sh '''
-                    if [ -f "${CFN_KEYPAIR}" ]
+                    if [ -f "${WORKSPACE}/.ssh/${CFN_KEYPAIR}" ]
                     then 
                         echo "file exists..."
                     else
