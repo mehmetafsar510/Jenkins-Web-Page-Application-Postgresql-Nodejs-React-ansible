@@ -7,6 +7,7 @@ pipeline{
         FQDN = "clarusway.mehmetafsar.com"
         FQDNBACKEND = "backend.mehmetafsar.com"
         DOMAIN_NAME = "mehmetafsar.com"
+        ANSIBLE_PRIVATE_KEY_FILE="${JENKINS_HOME}/.ssh/${CFN_KEYPAIR}"
         GIT_FOLDER = sh(script:'echo ${GIT_URL} | sed "s/.*\\///;s/.git$//"', returnStdout:true).trim()
     }
     // PATH=sh(script:"echo $PATH:/usr/local/bin", returnStdout:true).trim() /home/ec2-user/.local/bin/ansible
@@ -42,6 +43,7 @@ pipeline{
                         chmod 400 ${CFN_KEYPAIR}.pem
                         
                         ssh-keygen -y -f ${CFN_KEYPAIR}.pem >> ${CFN_KEYPAIR}.pub
+                        mkdir -p ${JENKINS_HOME}/.ssh
                         mv -f ${CFN_KEYPAIR}.pem ${JENKINS_HOME}/.ssh
                     fi
                 '''                
@@ -79,7 +81,7 @@ pipeline{
                     }
                 while(true) {
                         try{
-                            sh "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i ${JENKINS_HOME}/.ssh/${CFN_KEYPAIR} ec2-user@${NODEJS_INSTANCE_PUBLIC_DNS} hostname"
+                            sh "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i ${JENKINS_HOME}/.ssh/${CFN_KEYPAIR}.pem ec2-user@${NODEJS_INSTANCE_PUBLIC_DNS} hostname"
                             echo "NODEJS INSTANCE is reachable with SSH."
                             break
                         }
