@@ -22,9 +22,6 @@ pipeline{
                   sudo yum install -y yum-utils
                   sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo
                   sudo yum -y install terraform
-                  pip3 install --user ansible
-                  pip3 install --user boto3 botocore
-                  sudo yum install python-boto3 -y
                 """
               }
             }
@@ -34,7 +31,7 @@ pipeline{
             agent any
             steps{
                 sh '''
-                    if [ -f "${WORKSPACE}/.ssh/${CFN_KEYPAIR}" ]
+                    if [ -f "${WORKSPACE}/.ssh/${CFN_KEYPAIR}.pem" ]
                     then 
                         echo "file exists..."
                     else
@@ -42,12 +39,12 @@ pipeline{
                           --region ${AWS_REGION} \
                           --key-name ${CFN_KEYPAIR} \
                           --query KeyMaterial \
-                          --output text > ${CFN_KEYPAIR}
+                          --output text > ${CFN_KEYPAIR}.pem
 
-                        chmod 400 ${CFN_KEYPAIR}
+                        chmod 400 ${CFN_KEYPAIR}.pem
                         
-                        ssh-keygen -y -f ${CFN_KEYPAIR} >> ${CFN_KEYPAIR}.pub
-                        sudo mv -f ${CFN_KEYPAIR} ${WORKSPACE}/.ssh
+                        ssh-keygen -y -f ${CFN_KEYPAIR}.pem >> ${CFN_KEYPAIR}.pub
+                        sudo mv -f ${CFN_KEYPAIR}.pem ${WORKSPACE}/.ssh
                     fi
                 '''                
             }
