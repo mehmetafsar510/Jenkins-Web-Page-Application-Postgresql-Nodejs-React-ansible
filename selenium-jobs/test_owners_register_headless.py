@@ -13,7 +13,7 @@ chrome_options.add_argument("disable-dev-shm-usage")
 driver = webdriver.Chrome(options=chrome_options)
 
 # Connect to the application
-url = "https://clarusway.mehmetafsar.com/"
+url = "https://clarus.mehmetafsar.com/"
 print(url)
 driver.get(url)
 owners_link = driver.find_element_by_class_name('btn btn-success')

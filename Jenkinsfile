@@ -4,8 +4,8 @@ pipeline{
         PATH="/usr/local/bin/:${env.PATH}"
         CFN_KEYPAIR="the-doctor"
         AWS_REGION = "us-east-1"
-        FQDN = "clarusway.mehmetafsar.com"
-        FQDNBACKEND = "backend.mehmetafsar.com"
+        FQDN = "clarus.mehmetafsar.com"
+        FQDNBACKEND = "back.mehmetafsar.com"
         DOMAIN_NAME = "mehmetafsar.com"
         ANSIBLE_PRIVATE_KEY_FILE="${JENKINS_HOME}/.ssh/${CFN_KEYPAIR}"
         GIT_FOLDER = sh(script:'echo ${GIT_URL} | sed "s/.*\\///;s/.git$//"', returnStdout:true).trim()
