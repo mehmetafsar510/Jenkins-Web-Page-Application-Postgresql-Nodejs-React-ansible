@@ -44,7 +44,7 @@ pipeline{
                         chmod 400 ${CFN_KEYPAIR}.pem
                         
                         ssh-keygen -y -f ${CFN_KEYPAIR}.pem >> ${CFN_KEYPAIR}.pub
-                        sudo mv -f ${CFN_KEYPAIR}.pem ${WORKSPACE}/.ssh
+                        mv -f ${CFN_KEYPAIR}.pem ${WORKSPACE}/.ssh
                     fi
                 '''                
             }
