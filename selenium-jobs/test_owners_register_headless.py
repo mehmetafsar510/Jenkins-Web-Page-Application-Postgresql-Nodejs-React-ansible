@@ -16,7 +16,7 @@ driver = webdriver.Chrome(options=chrome_options)
 url = "https://clarusway.mehmetafsar.com/"
 print(url)
 driver.get(url)
-owners_link = driver.find_element_by_link_text("Add")
+owners_link = driver.find_element_by_name("Add")
 owners_link.click()
 sleep(2)
 # Register new Owner to Todo App
