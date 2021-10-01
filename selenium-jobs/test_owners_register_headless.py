@@ -41,23 +41,3 @@ else:
     print(fnson, 'is not found in the Todo Table')
     print("Test Failed")
 driver.quit()
-sleep(1)
-fn_field = driver.find_element_by_class_name('btn-danger')
-fn_field.send_keys(Keys.Delete)
-sleep(1)
-fn_field = driver.find_element_by_class_name('btn-success')
-fn = 'Todoapp' + str(random.randint(0, 100))
-fn_field.send_keys(fn)
-fn_field.send_keys(Keys.Add)
-
-
-# Wait 10 seconds to get updated Owner List
-sleep(10)
-# Verify that new user is added to Owner List
-if fn in driver.page_source:
-    print(fn, 'is added and found in the Todo')
-    print("Test Passed")
-else:
-    print(fn, 'is not found in the Todo Table')
-    print("Test Failed")
-driver.quit()
