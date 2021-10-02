@@ -3,7 +3,7 @@
 - hosts: all
   tasks:
   - name: run all selenium jobs
-    shell: "docker run --rm --env FQDN={{ dnsname }} -v {{ workspace }}:{{ workspace }} -w {{ workspace }} callahanclarus/selenium-py-chrome:latest python {{ item }}"
+    shell: "docker run --rm --env -v {{ workspace }}:{{ workspace }} -w {{ workspace }} callahanclarus/selenium-py-chrome:latest python {{ item }}"
     register: output
     with_fileglob: "{{ workspace }}/selenium-jobs/test*.py"
   

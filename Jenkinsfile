@@ -10,7 +10,10 @@ pipeline{
         ANSIBLE_PRIVATE_KEY_FILE="${JENKINS_HOME}/.ssh/${CFN_KEYPAIR}"
         GIT_FOLDER = sh(script:'echo ${GIT_URL} | sed "s/.*\\///;s/.git$//"', returnStdout:true).trim()
     }
-    // PATH=sh(script:"echo $PATH:/usr/local/bin", returnStdout:true).trim() /home/ec2-user/.local/bin/ansible
+    // PATH=sh(script:"echo $PATH:/usr/local/bin", returnStdout:true).trim() /home/ec2-user/.local/bin/ansible 
+          //pip3 install --user ansible
+          //pip3 install --user boto3 botocore
+          //yum install python-boto3 -y
     stages{
         stage('Setup terraform ansible  binaries') {
             steps {
@@ -200,20 +203,20 @@ pipeline{
                 sh "sed -i 's|{{key_pair}}|${CFN_KEYPAIR}.pem|g' ansible.cfg"
                 sh "sed -i 's|{{nodejs_dns_name}}|$FQDNBACKEND|g' todo-app-pern/client/.env"
                 sh "sed -i 's|{{postgresql_internal_private_dns}}|$POSTGRESQL_INSTANCE_PRİVATE_DNS|g' todo-app-pern/server/.env"
-                sh "sed -i 's|{{workspace}}|${WORKSPACE}|g' docker_project.yml"
+                sh "sed -i 's|{FQDN}|$FQDN|g' selenium-jobs/test_owners_register_headless.py"
                 sh "sed -i 's|{FQDN}|$FQDN|g' react_files/init-letsencrypt.sh"
                 sh "sed -i 's|{FQDN}|$FQDNBACKEND|g' nodejs_files/init-letsencrypt.sh" 
                 sh "sed -i 's|{FQDN}|$FQDN|g' react_files/data/data/nginx/app.conf"
                 sh "sed -i 's|{FQDN}|$FQDNBACKEND|g' nodejs_files/data/data/nginx/app.conf"
                 sh "sed -i 's|{{nodejs_ip}}|$NODEJS_INSTANCE_PUBLIC_DNS|g' nodejs_files/data/data/nginx/app.conf"
-                sh "sudo /home/ec2-user/.local/bin/ansible-playbook  docker_project.yml"   // --extra-vars "workspace=${WORKSPACE}"  sh 'envsubst < docker-compose.yml > docker-compose-tagged.yml'
+                sh 'sudo /home/ec2-user/.local/bin/ansible-playbook --extra-vars "workspace=${WORKSPACE}" docker_project.yml'   // --extra-vars "workspace=${WORKSPACE}" sh "sed -i 's|{{workspace}}|${WORKSPACE}|g' docker_project.yml" sh 'envsubst < docker-compose.yml > docker-compose-tagged.yml'
             }
         }
 
         stage('Run QA Automation Tests'){
             steps {
                 echo "Run the Selenium Functional Test on QA Environment"
-                sh 'sudo /home/ec2-user/.local/bin/ansible-playbook -vvv --connection=local --inventory 127.0.0.1, --extra-vars "workspace=${WORKSPACE} dnsname=${FQDN}" pb_run_selenium_jobs.yaml'
+                sh 'sudo /home/ec2-user/.local/bin/ansible-playbook -vvv --connection=local --inventory 127.0.0.1, --extra-vars "workspace=${WORKSPACE}" pb_run_selenium_jobs.yaml'
             }
         }
     

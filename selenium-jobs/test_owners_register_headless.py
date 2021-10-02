@@ -13,7 +13,7 @@ chrome_options.add_argument("disable-dev-shm-usage")
 driver = webdriver.Chrome(options=chrome_options)
 
 # Connect to the application
-url = "https://clarus.mehmetafsar.com/"
+url = "https://{FQDN}/"
 print(url)
 driver.get(url)
 
