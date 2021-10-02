@@ -44,7 +44,7 @@ pipeline{
                         
                         ssh-keygen -y -f ${CFN_KEYPAIR}.pem >> ${CFN_KEYPAIR}.pub
                         mkdir -p ${JENKINS_HOME}/.ssh
-                        mv -f ${CFN_KEYPAIR}.pem ${JENKINS_HOME}/.ssh
+                        cp -f ${CFN_KEYPAIR}.pem ${JENKINS_HOME}/.ssh
                         chown jenkins:jenkins ${JENKINS_HOME}/.ssh/${CFN_KEYPAIR}.pem
                     fi
                 '''                
