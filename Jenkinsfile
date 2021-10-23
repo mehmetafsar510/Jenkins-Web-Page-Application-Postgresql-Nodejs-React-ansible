@@ -1,7 +1,7 @@
 pipeline{
     agent any
     environment {
-        PATH="/home/ec2-user/.local/bin/ansible-playbook:/usr/local/bin/:${env.PATH}"
+        PATH="/usr/local/bin/:${env.PATH}"
         CFN_KEYPAIR="the-doctor"
         AWS_REGION = "us-east-1"
         FQDN = "clarus.mehmetafsar.net"
@@ -11,8 +11,8 @@ pipeline{
         GIT_FOLDER = sh(script:'echo ${GIT_URL} | sed "s/.*\\///;s/.git$//"', returnStdout:true).trim()
     }
     // PATH=sh(script:"echo $PATH:/usr/local/bin", returnStdout:true).trim() /home/ec2-user/.local/bin/ansible 
-          //pip3 install --user ansible
-          //pip3 install --user boto3 botocore
+          //pip3 install  ansible
+          //pip3 install  boto3 botocore
           //yum install python-boto3 -y
     stages{
         stage('Setup terraform ansible  binaries') {
