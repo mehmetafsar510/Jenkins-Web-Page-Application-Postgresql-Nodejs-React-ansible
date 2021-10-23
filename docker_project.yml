@@ -145,7 +145,7 @@
         state: present
     - name: Clone a github repository
       git:
-        repo: https://github.com/wmnnd/nginx-certbot.git
+        repo: https://github.com/mehmetafsar510/nginx-certbot.git
         dest: "{{ nginx_certbot_path }}"
         force: yes
         clone: yes
@@ -223,7 +223,7 @@
         state: present
     - name: Clone a github repository
       git:
-        repo: https://github.com/wmnnd/nginx-certbot.git
+        repo: https://github.com/mehmetafsar510/nginx-certbot.git
         dest: "{{ nginx_certbot_path }}"
         clone: yes
         update: yes
