@@ -212,14 +212,14 @@ pipeline{
                 sh "sed -i 's|{FQDN}|$FQDN|g' react_files/data/data/nginx/app.conf"
                 sh "sed -i 's|{FQDN}|$FQDNBACKEND|g' nodejs_files/data/data/nginx/app.conf"
                 sh "sed -i 's|{{nodejs_ip}}|$NODEJS_INSTANCE_PUBLIC_DNS|g' nodejs_files/data/data/nginx/app.conf"
-                sh 'sudo /home/ec2-user/.local/bin/ansible-playbook --extra-vars "workspace=${WORKSPACE}" docker_project.yml'   // --extra-vars "workspace=${WORKSPACE}" sh "sed -i 's|{{workspace}}|${WORKSPACE}|g' docker_project.yml" sh 'envsubst < docker-compose.yml > docker-compose-tagged.yml'
+                sh '/home/ec2-user/.local/bin/ansible-playbook --extra-vars "workspace=${WORKSPACE}" docker_project.yml'   // --extra-vars "workspace=${WORKSPACE}" sh "sed -i 's|{{workspace}}|${WORKSPACE}|g' docker_project.yml" sh 'envsubst < docker-compose.yml > docker-compose-tagged.yml'
             }
         }
 
         stage('Run QA Automation Tests'){
             steps {
                 echo "Run the Selenium Functional Test on QA Environment"
-                sh 'sudo /home/ec2-user/.local/bin/ansible-playbook -vvv --connection=local --inventory 127.0.0.1, --extra-vars "workspace=${WORKSPACE}" pb_run_selenium_jobs.yaml' // sudo /home/ec2-user/.local/bin/
+                sh '/home/ec2-user/.local/bin/ansible-playbook -vvv --connection=local --inventory 127.0.0.1, --extra-vars "workspace=${WORKSPACE}" pb_run_selenium_jobs.yaml' // sudo /home/ec2-user/.local/bin/
             }
         }
     
