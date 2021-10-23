@@ -1,7 +1,7 @@
 pipeline{
     agent any
     environment {
-        PATH="/home/ec2-user/.local/bin/:/usr/local/bin/:${env.PATH}"
+        PATH="/home/ec2-user/.local/bin/ansible-playbook:/usr/local/bin/:${env.PATH}"
         CFN_KEYPAIR="the-doctor"
         AWS_REGION = "us-east-1"
         FQDN = "clarus.mehmetafsar.net"
