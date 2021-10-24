@@ -10,10 +10,6 @@ pipeline{
         ANSIBLE_PRIVATE_KEY_FILE="${JENKINS_HOME}/.ssh/${CFN_KEYPAIR}.pem"
         GIT_FOLDER = sh(script:'echo ${GIT_URL} | sed "s/.*\\///;s/.git$//"', returnStdout:true).trim()
     }
-    // PATH=sh(script:"echo $PATH:/usr/local/bin", returnStdout:true).trim() /home/ec2-user/.local/bin/ansible 
-          //pip3 install  ansible
-          //pip3 install  boto3 botocore
-          //yum install python-boto3 -y
     stages{
         stage('Setup terraform ansible  binaries') {
             steps {
